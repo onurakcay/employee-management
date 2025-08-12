@@ -9,14 +9,9 @@ import {ReduxConnectedLitElement} from './src/utils/redux-connected-lit-element.
 import {globalStyles} from './src/styles/global-styles.js';
 import {
   setSearchFilter,
-  setDepartmentFilter,
-  setStatusFilter,
-  clearFilters,
   toggleSortDirection,
   setCurrentPage,
-  setItemsPerPage,
   deleteEmployee,
-  deleteSelectedEmployees,
   setSelectedRows,
   clearSelectedRows,
 } from './src/store/slices/employeeSlice.js';
@@ -27,7 +22,6 @@ import {
   selectEmployeeLoading,
   selectEmployeeError,
   selectSorting,
-  selectPagination,
   selectSelectedRows,
 } from './src/store/selectors/employeeSelectors.js';
 import './src/components/index.js';
@@ -264,10 +258,16 @@ export class EmployeeList extends ReduxConnectedLitElement {
   }
 
   mapStateToProps(state) {
+    const paginatedData = selectPaginatedEmployees(state);
     return {
-      paginatedEmployees: selectPaginatedEmployees(state).employees,
-      filteredEmployees: selectPaginatedEmployees(state).filteredEmployees,
-      pagination: selectPagination(state),
+      paginatedEmployees: paginatedData.employees,
+      filteredEmployees: paginatedData.filteredEmployees,
+      pagination: {
+        currentPage: paginatedData.currentPage,
+        totalPages: paginatedData.totalPages,
+        itemsPerPage: paginatedData.itemsPerPage,
+        totalItems: paginatedData.totalItems,
+      },
       selectedRows: selectSelectedRows(state),
       sorting: selectSorting(state),
       filters: selectFilters(state),
@@ -322,7 +322,7 @@ export class EmployeeList extends ReduxConnectedLitElement {
           <div class="page-actions">
             ${this._currentState.selectedRows.length > 0
               ? html`
-                  <custom-button variant="danger" size="small">
+                  <custom-button variant="primary" size="medium">
                     ${this.t('delete_selected', 'Delete Selected')}
                   </custom-button>
                 `

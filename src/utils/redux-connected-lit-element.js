@@ -62,7 +62,7 @@ export class ReduxConnectedLitElement extends LocalizedLitElement {
    * @param {Object} state - Redux state
    * @returns {Object} - Mapped state
    */
-  mapStateToProps(state) {
+  mapStateToProps() {
     // eslint-disable-line no-unused-vars
     return {};
   }

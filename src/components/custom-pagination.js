@@ -29,67 +29,70 @@ export class CustomPagination extends LocalizedLitElement {
           display: flex;
           justify-content: center;
           align-items: center;
-          gap: 4px;
+          gap: 8px;
           flex-wrap: wrap;
+          padding: 16px 0;
         }
 
         .pagination-button {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 36px;
-          height: 36px;
-          border: 1px solid #dee2e6;
-          background-color: white;
-          color: #495057;
+          width: 30px;
+          height: 30px;
+          border: none;
+          background-color: transparent;
+          color: var(--color-text-secondary);
           text-decoration: none;
-          border-radius: 6px;
+          border-radius: 50%;
           font-size: 14px;
           font-weight: 500;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.15s ease;
+          padding: 0;
           outline: none;
         }
 
-        .pagination-button:hover:not(:disabled) {
-          background-color: #e9ecef;
-          border-color: #adb5bd;
-        }
-
-        .pagination-button:focus {
-          outline: 2px solid var(--primary-color);
-          outline-offset: 2px;
+        .pagination-button:hover:not(:disabled):not(.active) {
+          background-color: var(--color-bg-hover);
+          color: var(--color-text-primary);
         }
 
         .pagination-button:disabled {
-          background-color: #f8f9fa;
-          color: #6c757d;
+          color: var(--color-text-disabled);
           cursor: not-allowed;
           opacity: 0.6;
         }
 
         .pagination-button.active {
-          background-color: var(--primary-color);
-          border-color: var(--primary-color);
+          background-color: var(--ing-primary);
           color: white;
+          font-weight: 600;
+          border-radius: 50%;
         }
 
         .pagination-button.active:hover {
-          background-color: var(--primary-dark);
-          border-color: var(--primary-dark);
+          background-color: var(--ing-primary);
         }
 
         .pagination-button.prev,
         .pagination-button.next {
-          width: auto;
-          padding: 0 12px;
-          font-size: 13px;
+          min-width: 40px;
+          padding: 0;
+          font-size: 18px;
+          color: var(--color-text-secondary);
+          font-weight: 400;
+        }
+
+        .pagination-button.prev:hover:not(:disabled),
+        .pagination-button.next:hover:not(:disabled) {
+          color: var(--color-primary);
         }
 
         .pagination-info {
           margin: 0 16px;
           font-size: 14px;
-          color: #6c757d;
+          color: var(--color-text-secondary);
           white-space: nowrap;
         }
 
@@ -197,7 +200,7 @@ export class CustomPagination extends LocalizedLitElement {
                 @click="${() => this._changePage(this.currentPage - 1)}"
                 part="button"
               >
-                ← ${this.t('previous')}
+                ‹
               </button>
             `
           : ''}
@@ -226,12 +229,9 @@ export class CustomPagination extends LocalizedLitElement {
                 @click="${() => this._changePage(this.currentPage + 1)}"
                 part="button"
               >
-                ${this.t('next')} →
+                ›
               </button>
             `
-          : ''}
-        ${this.showInfo
-          ? html` <div class="pagination-info">${this._getPageInfo()}</div> `
           : ''}
       </div>
     `;

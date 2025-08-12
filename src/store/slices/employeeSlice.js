@@ -78,6 +78,76 @@ const initialEmployees = [
     phone: '+90 555 567 8901',
     address: 'Maltepe, Istanbul',
   },
+  {
+    id: 6,
+    firstName: 'Can',
+    lastName: 'Arslan',
+    email: 'can.arslan@ing.com',
+    department: 'Engineering',
+    position: 'Junior Developer',
+    salary: 55000,
+    dateOfEmployment: '01/06/2023',
+    dateOfBirth: '18/12/1998',
+    status: 'active',
+    phone: '+90 555 567 8901',
+    address: 'Maltepe, Istanbul',
+  },
+  {
+    id: 7,
+    firstName: 'Can',
+    lastName: 'Arslan',
+    email: 'can.arslan@ing.com',
+    department: 'Engineering',
+    position: 'Junior Developer',
+    salary: 55000,
+    dateOfEmployment: '01/06/2023',
+    dateOfBirth: '18/12/1998',
+    status: 'active',
+    phone: '+90 555 567 8901',
+    address: 'Maltepe, Istanbul',
+  },
+  {
+    id: 8,
+    firstName: 'Can',
+    lastName: 'Arslan',
+    email: 'can.arslan@ing.com',
+    department: 'Engineering',
+    position: 'Junior Developer',
+    salary: 55000,
+    dateOfEmployment: '01/06/2023',
+    dateOfBirth: '18/12/1998',
+    status: 'active',
+    phone: '+90 555 567 8901',
+    address: 'Maltepe, Istanbul',
+  },
+  {
+    id: 9,
+    firstName: 'Can',
+    lastName: 'Arslan',
+    email: 'can.arslan@ing.com',
+    department: 'Engineering',
+    position: 'Junior Developer',
+    salary: 55000,
+    dateOfEmployment: '01/06/2023',
+    dateOfBirth: '18/12/1998',
+    status: 'active',
+    phone: '+90 555 567 8901',
+    address: 'Maltepe, Istanbul',
+  },
+  {
+    id: 10,
+    firstName: 'Can',
+    lastName: 'Arslan',
+    email: 'can.arslan@ing.com',
+    department: 'Engineering',
+    position: 'Junior Developer',
+    salary: 55000,
+    dateOfEmployment: '01/06/2023',
+    dateOfBirth: '18/12/1998',
+    status: 'active',
+    phone: '+90 555 567 8901',
+    address: 'Maltepe, Istanbul',
+  },
 ];
 
 // Load from localStorage if available
@@ -88,7 +158,9 @@ const loadFromStorage = () => {
       const parsed = JSON.parse(savedEmployees);
       // Check if data structure is compatible (has new field names)
       if (parsed.length > 0 && !parsed[0].dateOfEmployment) {
-        console.log('Outdated employee data structure detected, using initial data');
+        console.log(
+          'Outdated employee data structure detected, using initial data'
+        );
         localStorage.removeItem('employees'); // Clear old data
         return initialEmployees;
       }
@@ -121,12 +193,12 @@ const initialState = {
     status: 'all',
   },
   sorting: {
-    field: 'lastName',
+    field: 'id',
     direction: 'asc',
   },
   pagination: {
     currentPage: 1,
-    itemsPerPage: 10,
+    itemsPerPage: 5,
     totalItems: 0,
   },
 };
