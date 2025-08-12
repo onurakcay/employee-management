@@ -345,7 +345,7 @@ export class CustomInput extends LitElement {
           part="input"
           class="input-control"
           type="${this.type}"
-          .value="${this.value}"
+          .value="${this.value || ''}"
           placeholder="${this.placeholder}"
           ?disabled="${this.disabled}"
           ?readonly="${this.readonly}"
@@ -377,12 +377,17 @@ export class CustomInput extends LitElement {
   }
 
   _handleInput(event) {
-    this.value = event.target.value;
+    const inputValue = event.target.value;
+
+    // Eğer değer undefined veya null ise event dispatch etme
+    if (inputValue === undefined || inputValue === null) {
+      return;
+    }
 
     this.dispatchEvent(
       new CustomEvent('input', {
         detail: {
-          value: this.value,
+          value: inputValue,
           originalEvent: event,
         },
         bubbles: true,
@@ -395,7 +400,7 @@ export class CustomInput extends LitElement {
     this.dispatchEvent(
       new CustomEvent('change', {
         detail: {
-          value: this.value,
+          value: event.target.value,
           originalEvent: event,
         },
         bubbles: true,

@@ -5,7 +5,10 @@
  */
 
 import {html, css} from 'lit';
-import {LocalizedLitElement} from './src/utils/localized-lit-element.js';
+import {ReduxConnectedLitElement} from './src/utils/redux-connected-lit-element.js';
+import {addEmployee} from './src/store/slices/employeeSlice.js';
+import {t} from './src/utils/localization.js';
+import {globalStyles} from './src/styles/global-styles.js';
 import './src/components/index.js';
 
 /**
@@ -14,112 +17,114 @@ import './src/components/index.js';
  * @fires employee-save - Dispatched when employee is saved
  * @fires employee-cancel - Dispatched when action is cancelled
  */
-export class AddEmployee extends LocalizedLitElement {
+export class AddEmployee extends ReduxConnectedLitElement {
   static get styles() {
-    return css`
-      :host {
-        display: block;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-          Arial, sans-serif;
-        background-color: #f5f5f5;
-        min-height: 100vh;
-        padding: 0;
-      }
-
-      .content {
-        padding: 24px;
-        max-width: 800px;
-        margin: 0 auto;
-      }
-
-      .page-title {
-        font-size: 24px;
-        font-weight: 600;
-        color: #e60026;
-        margin: 0 0 32px 0;
-      }
-
-      .form-container {
-        background-color: white;
-        border-radius: 8px;
-        padding: 32px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 24px;
-        margin-bottom: 32px;
-      }
-
-      .form-row {
-        display: contents;
-      }
-
-      .form-actions {
-        display: flex;
-        justify-content: center;
-        gap: 16px;
-        margin-top: 32px;
-      }
-
-      .date-input-wrapper {
-        position: relative;
-      }
-
-      .date-icon {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #e60026;
-        font-size: 16px;
-        pointer-events: none;
-        z-index: 1;
-      }
-
-      /* Responsive design */
-      @media (max-width: 768px) {
-        .form-grid {
-          grid-template-columns: 1fr;
-          gap: 16px;
+    return [
+      globalStyles,
+      css`
+        :host {
+          display: block;
+          font-family: var(--font-family);
+          background-color: var(--bg-secondary);
+          min-height: 100vh;
+          padding: 0;
         }
 
         .content {
-          padding: 16px;
+          padding: var(--spacing-lg);
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
+        .page-title {
+          font-size: var(--font-size-xl);
+          font-weight: var(--font-weight-bold);
+          color: var(--color-primary);
+          margin: 0 0 var(--spacing-xl) 0;
         }
 
         .form-container {
-          padding: 24px 16px;
+          background-color: var(--bg-primary);
+          border-radius: var(--radius-large);
+          padding: var(--spacing-xl);
+          box-shadow: var(--shadow-medium);
         }
 
-        .header {
-          padding: 12px 16px;
-        }
-
-        .header-left,
-        .header-right {
-          gap: 12px;
-        }
-
-        .user-info span {
-          display: none;
-        }
-      }
-
-      @media (max-width: 1024px) and (min-width: 769px) {
         .form-grid {
-          grid-template-columns: 1fr 1fr;
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: var(--spacing-lg);
+          margin-bottom: var(--spacing-xl);
         }
-      }
-    `;
+
+        .form-row {
+          display: contents;
+        }
+
+        .form-actions {
+          display: flex;
+          justify-content: center;
+          gap: var(--spacing-md);
+          margin-top: var(--spacing-xl);
+        }
+
+        .date-input-wrapper {
+          position: relative;
+        }
+
+        .date-icon {
+          position: absolute;
+          right: var(--spacing-sm);
+          top: 50%;
+          transform: translateY(-50%);
+          color: var(--color-primary);
+          font-size: var(--font-size-md);
+          pointer-events: none;
+          z-index: 1;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+          .form-grid {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+          }
+
+          .content {
+            padding: var(--spacing-md);
+          }
+
+          .form-container {
+            padding: var(--spacing-lg) var(--spacing-md);
+          }
+
+          .header {
+            padding: var(--spacing-sm) var(--spacing-md);
+          }
+
+          .header-left,
+          .header-right {
+            gap: var(--spacing-sm);
+          }
+
+          .user-info span {
+            display: none;
+          }
+        }
+
+        @media (max-width: 1024px) and (min-width: 769px) {
+          .form-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+      `,
+    ];
   }
 
   static get properties() {
     return {
       /**
-       * Employee form data
+       * Employee data for the form
        * @type {Object}
        */
       employeeData: {type: Object, state: true},
@@ -128,7 +133,13 @@ export class AddEmployee extends LocalizedLitElement {
        * Loading state
        * @type {boolean}
        */
-      loading: {type: Boolean, state: true},
+      loading: {type: Boolean},
+
+      /**
+       * Form validation errors
+       * @type {Object}
+       */
+      errors: {type: Object, state: true},
     };
   }
 
@@ -145,6 +156,24 @@ export class AddEmployee extends LocalizedLitElement {
       position: '',
     };
     this.loading = false;
+    this.errors = {};
+  }
+
+  /**
+   * Helper method for getting translations in components
+   * @param {string} key - Translation key
+   * @param {string} fallback - Fallback text
+   * @returns {string} Translated string
+   */
+  t(key, fallback) {
+    return t(key, fallback);
+  }
+
+  mapStateToProps(state) {
+    return {
+      loading: state.employees.loading,
+      error: state.employees.error,
+    };
   }
 
   render() {
@@ -160,30 +189,36 @@ export class AddEmployee extends LocalizedLitElement {
         <h1 class="page-title">${this.t('add_employee_title')}</h1>
 
         <div class="form-container">
-          <form @submit="${this._handleSubmit}">
+          <form>
             <div class="form-grid">
               <!-- Row 1 -->
               <div class="form-row">
                 <custom-input
-                  label="${this.t('first_name_label')}"
+                  label="${this.t('first_name_label', 'First Name')}"
                   .value="${this.employeeData.firstName}"
                   @input="${this._handleFirstNameChange}"
+                  ?error="${!!this.errors.firstName}"
+                  help-text="${this.errors.firstName || ''}"
                   required
                 ></custom-input>
 
                 <custom-input
-                  label="${this.t('last_name_label')}"
+                  label="${this.t('last_name_label', 'Last Name')}"
                   .value="${this.employeeData.lastName}"
                   @input="${this._handleLastNameChange}"
+                  ?error="${!!this.errors.lastName}"
+                  help-text="${this.errors.lastName || ''}"
                   required
                 ></custom-input>
 
                 <div class="date-input-wrapper">
                   <custom-input
-                    label="${this.t('hire_date_label')}"
+                    label="${this.t('hire_date_label', 'Employment Date')}"
                     type="date"
                     .value="${this.employeeData.dateOfEmployment}"
                     @input="${this._handleEmploymentDateChange}"
+                    ?error="${!!this.errors.dateOfEmployment}"
+                    help-text="${this.errors.dateOfEmployment || ''}"
                     required
                   ></custom-input>
                   <div class="date-icon">📅</div>
@@ -198,24 +233,30 @@ export class AddEmployee extends LocalizedLitElement {
                     type="date"
                     .value="${this.employeeData.dateOfBirth}"
                     @input="${this._handleBirthDateChange}"
+                    ?error="${!!this.errors.dateOfBirth}"
+                    help-text="${this.errors.dateOfBirth || ''}"
                     required
                   ></custom-input>
                   <div class="date-icon">📅</div>
                 </div>
 
                 <custom-input
-                  label="${this.t('phone_label')}"
+                  label="${this.t('phone_label', 'Phone')}"
                   type="tel"
                   .value="${this.employeeData.phone}"
                   @input="${this._handlePhoneChange}"
+                  ?error="${!!this.errors.phone}"
+                  help-text="${this.errors.phone || ''}"
                   required
                 ></custom-input>
 
                 <custom-input
-                  label="${this.t('email_label')}"
+                  label="${this.t('email_label', 'Email')}"
                   type="email"
                   .value="${this.employeeData.email}"
                   @input="${this._handleEmailChange}"
+                  ?error="${!!this.errors.email}"
+                  help-text="${this.errors.email || ''}"
                   required
                 ></custom-input>
               </div>
@@ -223,35 +264,47 @@ export class AddEmployee extends LocalizedLitElement {
               <!-- Row 3 -->
               <div class="form-row">
                 <custom-input
-                  label="${this.t('department_label')}"
+                  label="${this.t('department_label', 'Department')}"
                   .value="${this.employeeData.department}"
                   @input="${this._handleDepartmentChange}"
+                  ?error="${!!this.errors.department}"
+                  help-text="${this.errors.department || ''}"
                   required
                 ></custom-input>
 
-                <custom-select
-                  label="${this.t('position_label')}"
-                  placeholder="${this.t('select_status', 'Please Select')}"
-                  .value="${this.employeeData.position}"
-                  @change="${this._handlePositionChange}"
-                  required
-                >
-                  <option value="">
-                    ${this.t('select_status', 'Please Select')}
-                  </option>
-                  <option value="junior">${this.t('junior', 'Junior')}</option>
-                  <option value="mid">
-                    ${this.t('mid_level', 'Mid-Level')}
-                  </option>
-                  <option value="senior">${this.t('senior', 'Senior')}</option>
-                  <option value="lead">${this.t('lead', 'Lead')}</option>
-                  <option value="manager">
-                    ${this.t('manager', 'Manager')}
-                  </option>
-                  <option value="director">
-                    ${this.t('director', 'Director')}
-                  </option>
-                </custom-select>
+                <div>
+                  <custom-select
+                    label="${this.t('position_label', 'Position')}"
+                    .value="${this.employeeData.position}"
+                    @change="${this._handlePositionChange}"
+                    required
+                    ?error="${!!this.errors.position}"
+                    help-text="${this.errors.position || ''}"
+                    placeholder="${this.t('select_position', 'Please Select')}"
+                    .options="${[
+                      {
+                        value: 'junior-developer',
+                        label: this.t('junior_developer', 'Junior Developer'),
+                      },
+                      {
+                        value: 'senior-developer',
+                        label: this.t('senior_developer', 'Senior Developer'),
+                      },
+                      {
+                        value: 'product-manager',
+                        label: this.t('product_manager', 'Product Manager'),
+                      },
+                      {
+                        value: 'ux-designer',
+                        label: this.t('ux_designer', 'UX Designer'),
+                      },
+                      {
+                        value: 'data-analyst',
+                        label: this.t('data_analyst', 'Data Analyst'),
+                      },
+                    ]}"
+                  ></custom-select>
+                </div>
 
                 <div></div>
                 <!-- Empty cell for grid alignment -->
@@ -261,20 +314,21 @@ export class AddEmployee extends LocalizedLitElement {
             <div class="form-actions">
               <custom-button
                 variant="primary"
-                type="submit"
+                type="button"
                 .loading="${this.loading}"
+                @click="${this._handleSubmit}"
                 style="min-width: 120px;"
               >
-                ${this.t('save')}
+                ${this.t('save_employee', 'Save Employee')}
               </custom-button>
 
               <custom-button
                 variant="outline"
                 type="button"
-                @button-click="${this._handleCancel}"
+                @click="${this._handleCancel}"
                 style="min-width: 120px;"
               >
-                ${this.t('cancel')}
+                ${this.t('cancel', 'Cancel')}
               </custom-button>
             </div>
           </form>
@@ -284,34 +338,72 @@ export class AddEmployee extends LocalizedLitElement {
   }
 
   _handleFirstNameChange(event) {
+    if (event.detail.value === undefined || event.detail.value === null) {
+      return;
+    }
+
     this.employeeData = {
       ...this.employeeData,
       firstName: event.detail.value,
     };
+
+    // Clear error when user types
+    if (this.errors.firstName) {
+      this.errors = {
+        ...this.errors,
+        firstName: '',
+      };
+    }
   }
 
   _handleLastNameChange(event) {
+    if (event.detail.value === undefined || event.detail.value === null) {
+      return;
+    }
+
     this.employeeData = {
       ...this.employeeData,
       lastName: event.detail.value,
     };
+
+    // Clear error when user types
+    if (this.errors.lastName) {
+      this.errors = {
+        ...this.errors,
+        lastName: '',
+      };
+    }
   }
 
   _handleEmploymentDateChange(event) {
+    const value = event.detail?.value || event.target?.value;
+    if (value === undefined || value === null) {
+      return;
+    }
+
     this.employeeData = {
       ...this.employeeData,
-      dateOfEmployment: event.detail.value,
+      dateOfEmployment: value,
     };
   }
 
   _handleBirthDateChange(event) {
+    const value = event.detail?.value || event.target?.value;
+    if (value === undefined || value === null) {
+      return;
+    }
+
     this.employeeData = {
       ...this.employeeData,
-      dateOfBirth: event.detail.value,
+      dateOfBirth: value,
     };
   }
 
   _handlePhoneChange(event) {
+    if (event.detail.value === undefined || event.detail.value === null) {
+      return;
+    }
+
     this.employeeData = {
       ...this.employeeData,
       phone: event.detail.value,
@@ -319,6 +411,10 @@ export class AddEmployee extends LocalizedLitElement {
   }
 
   _handleEmailChange(event) {
+    if (event.detail.value === undefined || event.detail.value === null) {
+      return;
+    }
+
     this.employeeData = {
       ...this.employeeData,
       email: event.detail.value,
@@ -326,6 +422,10 @@ export class AddEmployee extends LocalizedLitElement {
   }
 
   _handleDepartmentChange(event) {
+    if (event.detail.value === undefined || event.detail.value === null) {
+      return;
+    }
+
     this.employeeData = {
       ...this.employeeData,
       department: event.detail.value,
@@ -333,64 +433,181 @@ export class AddEmployee extends LocalizedLitElement {
   }
 
   _handlePositionChange(event) {
+    // Handle both native select events and custom-select events
+    const value = event.detail ? event.detail.value : event.target.value;
+
     this.employeeData = {
       ...this.employeeData,
-      position: event.detail.value,
+      position: value,
     };
+
+    // Clear position error when user selects a value
+    if (value && this.errors.position) {
+      this.errors = {
+        ...this.errors,
+        position: '',
+      };
+    }
+  }
+  _validateForm() {
+    const errors = {};
+
+    // Required field validation
+    if (
+      !this.employeeData.firstName ||
+      this.employeeData.firstName.trim() === ''
+    ) {
+      errors.firstName = this.t('required_field', 'This field is required');
+    }
+
+    if (
+      !this.employeeData.lastName ||
+      this.employeeData.lastName.trim() === ''
+    ) {
+      errors.lastName = this.t('required_field', 'This field is required');
+    }
+
+    if (
+      !this.employeeData.dateOfEmployment ||
+      this.employeeData.dateOfEmployment.trim() === ''
+    ) {
+      errors.dateOfEmployment = this.t(
+        'required_field',
+        'This field is required'
+      );
+    }
+
+    if (
+      !this.employeeData.dateOfBirth ||
+      this.employeeData.dateOfBirth.trim() === ''
+    ) {
+      errors.dateOfBirth = this.t('required_field', 'This field is required');
+    }
+
+    if (!this.employeeData.phone || this.employeeData.phone.trim() === '') {
+      errors.phone = this.t('required_field', 'This field is required');
+    } else {
+      // Phone validation
+      const phoneRegex = /^[0-9+\-\s()]+$/;
+      if (!phoneRegex.test(this.employeeData.phone)) {
+        errors.phone = this.t(
+          'invalid_phone',
+          'Please enter a valid phone number'
+        );
+      }
+    }
+
+    if (!this.employeeData.email || this.employeeData.email.trim() === '') {
+      errors.email = this.t('required_field', 'This field is required');
+    } else {
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(this.employeeData.email)) {
+        errors.email = this.t(
+          'invalid_email',
+          'Please enter a valid email address'
+        );
+      }
+    }
+
+    if (
+      !this.employeeData.department ||
+      this.employeeData.department.trim() === ''
+    ) {
+      errors.department = this.t('required_field', 'This field is required');
+    }
+
+    if (
+      !this.employeeData.position ||
+      this.employeeData.position.trim() === ''
+    ) {
+      errors.position = this.t('required_field', 'This field is required');
+    }
+
+    // Date validation
+    if (this.employeeData.dateOfBirth && this.employeeData.dateOfEmployment) {
+      const birthDate = new Date(this.employeeData.dateOfBirth);
+      const employmentDate = new Date(this.employeeData.dateOfEmployment);
+
+      if (birthDate >= employmentDate) {
+        errors.dateOfBirth = this.t(
+          'date_birth_before_employment',
+          'Date of birth must be before employment date'
+        );
+      }
+
+      // Age validation (must be at least 18)
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+
+      if (
+        age < 18 ||
+        (age === 18 && monthDiff < 0) ||
+        (age === 18 && monthDiff === 0 && today.getDate() < birthDate.getDate())
+      ) {
+        errors.dateOfBirth = this.t(
+          'employee_min_age',
+          'Employee must be at least 18 years old'
+        );
+      }
+    }
+
+    this.errors = errors;
+    return Object.keys(errors).length === 0;
   }
 
   _handleSubmit(event) {
-    event.preventDefault();
+    if (event) {
+      event.preventDefault();
+    }
 
-    // Validate required fields
-    const requiredFields = [
-      'firstName',
-      'lastName',
-      'dateOfEmployment',
-      'dateOfBirth',
-      'phone',
-      'email',
-      'department',
-      'position',
-    ];
-    const missingFields = requiredFields.filter(
-      (field) => !this.employeeData[field]
-    );
-
-    if (missingFields.length > 0) {
-      alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+    // Validate form
+    if (!this._validateForm()) {
       return;
     }
 
     this.loading = true;
 
-    // Simulate API call
-    setTimeout(() => {
-      this.loading = false;
+    try {
+      // Generate unique ID
+      const newEmployee = {
+        id: Date.now(),
+        ...this.employeeData,
+      };
 
-      this.dispatchEvent(
-        new CustomEvent('employee-save', {
-          detail: this.employeeData,
-          bubbles: true,
-          composed: true,
-        })
-      );
+      // Dispatch Redux action to add employee
+      this.dispatchAction(addEmployee(newEmployee));
 
       // Show success message
-      alert('Employee saved successfully!');
+      alert(this.t('employee_added', 'Employee added successfully'));
 
       // Reset form
       this._resetForm();
 
       // Navigate back to employee list
-      this._navigateToEmployeeList();
-    }, 1000);
+      setTimeout(() => {
+        this._navigateToEmployeeList();
+        this.loading = false;
+      }, 500);
+    } catch (error) {
+      console.error('Employee save error:', error);
+      alert(
+        this.t('employee_add_error', 'Error occurred while adding employee')
+      );
+      this.loading = false;
+    }
   }
 
   _handleCancel() {
     if (this._hasUnsavedChanges()) {
       if (
-        confirm('You have unsaved changes. Are you sure you want to cancel?')
+        confirm(
+          this.t(
+            'unsaved_changes_warning',
+            'You have unsaved changes. Are you sure you want to cancel?'
+          )
+        )
       ) {
         this._resetForm();
         this._navigateToEmployeeList();
@@ -434,6 +651,7 @@ export class AddEmployee extends LocalizedLitElement {
       department: '',
       position: '',
     };
+    this.errors = {};
   }
 }
 

@@ -215,6 +215,12 @@ export class CustomSelect extends LitElement {
        * @type {string}
        */
       placeholder: {type: String},
+
+      /**
+       * Options for the select
+       * @type {Array<{value: string, label: string, disabled?: boolean}>}
+       */
+      options: {type: Array},
     };
   }
 
@@ -231,6 +237,7 @@ export class CustomSelect extends LitElement {
     this.success = false;
     this.multiple = false;
     this.placeholder = '';
+    this.options = [];
   }
 
   render() {
@@ -267,6 +274,17 @@ export class CustomSelect extends LitElement {
                 </option>
               `
             : ''}
+          ${this.options.map(
+            (option) => html`
+              <option
+                value="${option.value}"
+                ?disabled="${option.disabled}"
+                ?selected="${this.value === option.value}"
+              >
+                ${option.label}
+              </option>
+            `
+          )}
           <slot></slot>
         </select>
       </div>

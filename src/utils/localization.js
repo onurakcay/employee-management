@@ -15,6 +15,7 @@ const translations = {
     // Common
     cancel: 'İptal',
     save: 'Kaydet',
+    save_employee: 'Çalışanı Kaydet',
     edit: 'Düzenle',
     delete: 'Sil',
     add: 'Ekle',
@@ -121,6 +122,23 @@ const translations = {
     invalid_email: 'Geçerli bir e-posta adresi girin',
     invalid_phone: 'Geçerli bir telefon numarası girin',
     salary_min: 'Maaş en az 0 olmalıdır',
+    date_birth_before_employment:
+      'Doğum tarihi işe başlama tarihinden önce olmalıdır',
+    employee_min_age: 'Çalışan en az 18 yaşında olmalıdır',
+
+    // Form placeholders and selects
+    select_position: 'Pozisyon Seçin',
+
+    // Position options
+    junior_developer: 'Junior Developer',
+    senior_developer: 'Senior Developer',
+    product_manager: 'Product Manager',
+    ux_designer: 'UX Designer',
+    data_analyst: 'Data Analyst',
+
+    // Confirmation messages
+    unsaved_changes_warning:
+      'Kaydedilmemiş değişiklikleriniz var. İptal etmek istediğinizden emin misiniz?',
 
     // Success Messages
     employee_added: 'Çalışan başarıyla eklendi',
@@ -163,6 +181,7 @@ const translations = {
     // Common
     cancel: 'Cancel',
     save: 'Save',
+    save_employee: 'Save Employee',
     edit: 'Edit',
     delete: 'Delete',
     add: 'Add',
@@ -269,6 +288,23 @@ const translations = {
     invalid_email: 'Please enter a valid email address',
     invalid_phone: 'Please enter a valid phone number',
     salary_min: 'Salary must be at least 0',
+    date_birth_before_employment:
+      'Date of birth must be before employment date',
+    employee_min_age: 'Employee must be at least 18 years old',
+
+    // Form placeholders and selects
+    select_position: 'Please Select',
+
+    // Position options
+    junior_developer: 'Junior Developer',
+    senior_developer: 'Senior Developer',
+    product_manager: 'Product Manager',
+    ux_designer: 'UX Designer',
+    data_analyst: 'Data Analyst',
+
+    // Confirmation messages
+    unsaved_changes_warning:
+      'You have unsaved changes. Are you sure you want to cancel?',
 
     // Success Messages
     employee_added: 'Employee added successfully',
