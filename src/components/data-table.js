@@ -191,10 +191,28 @@ export class DataTable extends LocalizedLitElement {
       columns: {type: Array},
 
       /**
-       * Selected rows
+       * Selected rows (array of IDs)
        * @type {Array}
        */
       selectedRows: {type: Array, state: true},
+
+      /**
+       * Row ID field name
+       * @type {string}
+       */
+      rowIdField: {type: String, attribute: 'row-id-field'},
+
+      /**
+       * Total number of items across all pages
+       * @type {number}
+       */
+      totalItemCount: {type: Number, attribute: 'total-item-count'},
+
+      /**
+       * All filtered employee IDs (across all pages)
+       * @type {Array}
+       */
+      allFilteredEmployeeIds: {type: Array},
 
       /**
        * Whether all rows are selected
@@ -224,6 +242,9 @@ export class DataTable extends LocalizedLitElement {
     this.allSelected = false;
     this.loading = false;
     this.sortConfig = {column: null, direction: 'asc'};
+    this.rowIdField = 'id'; // Default ID field
+    this.totalItemCount = 0; // Total items across all pages
+    this.allFilteredEmployeeIds = []; // All filtered employee IDs
   }
 
   // Icon templates using SVG
@@ -292,9 +313,8 @@ export class DataTable extends LocalizedLitElement {
             <tr>
               <th class="checkbox-cell">
                 <custom-checkbox
-                  .checked="${this.allSelected}"
-                  .indeterminate="${this.selectedRows.length > 0 &&
-                  this.selectedRows.length < this.data.length}"
+                  .checked="${this.areAllFilteredItemsSelected}"
+                  .indeterminate="${this.isSelectionIndeterminate}"
                   @change="${this._handleSelectAll}"
                 ></custom-checkbox>
               </th>
@@ -328,17 +348,16 @@ export class DataTable extends LocalizedLitElement {
             </tr>
           </thead>
           <tbody>
-            ${this.data.map(
-              (row, index) => html`
-                <tr
-                  part="row"
-                  class="${this.selectedRows.includes(index) ? 'selected' : ''}"
-                >
+            ${this.data.map((row, index) => {
+              const rowId = row[this.rowIdField];
+              const isSelected = this.selectedRows.includes(rowId);
+              return html`
+                <tr part="row" class="${isSelected ? 'selected' : ''}">
                   <td class="checkbox-cell">
                     <custom-checkbox
-                      .checked="${this.selectedRows.includes(index)}"
+                      .checked="${isSelected}"
                       @change="${(e) =>
-                        this._handleRowSelect(index, e.detail.checked)}"
+                        this._handleRowSelect(rowId, e.detail.checked, row)}"
                     ></custom-checkbox>
                   </td>
                   ${this.columns.map(
@@ -363,8 +382,8 @@ export class DataTable extends LocalizedLitElement {
                     </button>
                   </td>
                 </tr>
-              `
-            )}
+              `;
+            })}
           </tbody>
         </table>
       </div>
@@ -383,14 +402,28 @@ export class DataTable extends LocalizedLitElement {
 
   _handleSelectAll(event) {
     const checked = event.detail.checked;
-    this.allSelected = checked;
-    this.selectedRows = checked ? this.data.map((_, index) => index) : [];
+
+    if (checked) {
+      // Select all filtered items (across all pages)
+      const newIds = this.allFilteredEmployeeIds.filter(
+        (id) => !this.selectedRows.includes(id)
+      );
+      this.selectedRows = [...this.selectedRows, ...newIds];
+    } else {
+      // Deselect all filtered items (keep only non-filtered selections if any)
+      this.selectedRows = this.selectedRows.filter(
+        (id) => !this.allFilteredEmployeeIds.includes(id)
+      );
+    }
+
+    this.allSelected = this.areAllFilteredItemsSelected;
 
     this.dispatchEvent(
       new CustomEvent('row-select', {
         detail: {
           selectedRows: this.selectedRows,
           allSelected: this.allSelected,
+          allFilteredSelected: this.areAllFilteredItemsSelected,
         },
         bubbles: true,
         composed: true,
@@ -398,21 +431,23 @@ export class DataTable extends LocalizedLitElement {
     );
   }
 
-  _handleRowSelect(index, checked) {
+  _handleRowSelect(rowId, checked, rowData) {
     if (checked) {
-      this.selectedRows = [...this.selectedRows, index];
+      this.selectedRows = [...this.selectedRows, rowId];
     } else {
-      this.selectedRows = this.selectedRows.filter((i) => i !== index);
+      this.selectedRows = this.selectedRows.filter((id) => id !== rowId);
     }
 
-    this.allSelected = this.selectedRows.length === this.data.length;
+    this.allSelected = this.areAllFilteredItemsSelected;
 
     this.dispatchEvent(
       new CustomEvent('row-select', {
         detail: {
           selectedRows: this.selectedRows,
           allSelected: this.allSelected,
-          rowIndex: index,
+          allFilteredSelected: this.areAllFilteredItemsSelected,
+          rowId: rowId,
+          rowData: rowData,
           checked,
         },
         bubbles: true,
@@ -454,6 +489,53 @@ export class DataTable extends LocalizedLitElement {
         composed: true,
       })
     );
+  }
+
+  /**
+   * Check if all filtered items are selected
+   */
+  get areAllFilteredItemsSelected() {
+    return (
+      this.allFilteredEmployeeIds.length > 0 &&
+      this.allFilteredEmployeeIds.every((id) => this.selectedRows.includes(id))
+    );
+  }
+
+  /**
+   * Check if selection is in indeterminate state (some but not all selected)
+   */
+  get isSelectionIndeterminate() {
+    const selectedCount = this.selectedRows.filter((id) =>
+      this.allFilteredEmployeeIds.includes(id)
+    ).length;
+    return (
+      selectedCount > 0 && selectedCount < this.allFilteredEmployeeIds.length
+    );
+  }
+
+  /**
+   * Get the number of selected items in current page
+   */
+  get currentPageSelectedCount() {
+    const currentPageIds = this.data.map((row) => row[this.rowIdField]);
+    return this.selectedRows.filter((id) => currentPageIds.includes(id)).length;
+  }
+
+  /**
+   * Check if all items in current page are selected
+   */
+  get isCurrentPageFullySelected() {
+    return (
+      this.data.length > 0 && this.currentPageSelectedCount === this.data.length
+    );
+  }
+
+  /**
+   * Check if current page is in indeterminate state
+   */
+  get isCurrentPageIndeterminate() {
+    const selected = this.currentPageSelectedCount;
+    return selected > 0 && selected < this.data.length;
   }
 }
 

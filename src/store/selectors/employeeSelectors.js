@@ -51,6 +51,12 @@ export const selectFilteredEmployees = createSelector(
   }
 );
 
+// Get all filtered employee IDs
+export const selectAllFilteredEmployeeIds = createSelector(
+  [selectFilteredEmployees],
+  (employees) => employees.map((emp) => emp.id)
+);
+
 export const selectSortedEmployees = createSelector(
   [selectFilteredEmployees, selectSorting],
   (employees, sorting) => {

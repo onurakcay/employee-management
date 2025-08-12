@@ -6,7 +6,7 @@
 
 import {html, css} from 'lit';
 import {ReduxConnectedLitElement} from './src/utils/redux-connected-lit-element.js';
-import {addEmployee} from './src/store/slices/employeeSlice.js';
+import {addEmployee, setCurrentPage} from './src/store/slices/employeeSlice.js';
 import {t} from './src/utils/localization.js';
 import {globalStyles} from './src/styles/global-styles.js';
 import './src/components/index.js';
@@ -194,6 +194,8 @@ export class AddEmployee extends ReduxConnectedLitElement {
     return {
       loading: state.employees.loading,
       error: state.employees.error,
+      totalEmployees: state.employees.employees.length,
+      itemsPerPage: state.employees.pagination.itemsPerPage || 10,
     };
   }
 
@@ -623,21 +625,17 @@ export class AddEmployee extends ReduxConnectedLitElement {
       // Dispatch Redux action to add employee
       this.dispatchAction(addEmployee(newEmployee));
 
-      // Show success message
-      this._showModal(
-        'success',
-        this.t('employee_added', 'Employee added successfully')
-      );
+      // Wait for next render cycle to ensure state is updated, then navigate
+      requestAnimationFrame(() => {
+        this._navigateToEmployeeListLastPage();
+      });
 
       // Reset form
       this._resetForm();
-
-      // Navigate back to employee list after modal is closed
-      setTimeout(() => {
-        this.loading = false;
-      }, 100);
+      this.loading = false;
     } catch (error) {
       console.error('Employee save error:', error);
+      // Show error modal on failure
       this._showModal(
         'error',
         this.t('employee_add_error', 'Error occurred while adding employee')
@@ -674,6 +672,29 @@ export class AddEmployee extends ReduxConnectedLitElement {
         })
       );
     }
+  }
+
+  _navigateToEmployeeListLastPage() {
+    // Calculate the last page number based on current employees count
+    // Use state from mapStateToProps
+    if (!this._currentState) {
+      console.error('State not available');
+      // Fallback to normal navigation
+      this._navigateToEmployeeList();
+      return;
+    }
+
+    const totalEmployees = this._currentState.totalEmployees;
+    const itemsPerPage = this._currentState.itemsPerPage;
+    const totalPages = Math.ceil(totalEmployees / itemsPerPage);
+    const lastPage = Math.max(1, totalPages);
+
+    // Set the current page to the last page before navigating
+    this.dispatchAction(setCurrentPage(lastPage));
+
+    // Navigate to employee list
+    window.history.pushState({}, '', '/');
+    window.dispatchEvent(new PopStateEvent('popstate'));
   }
 
   _navigateToEmployeeList() {

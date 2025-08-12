@@ -142,6 +142,10 @@ const translations = {
     delete_employee_title: 'Emin misiniz?',
     delete_employee_message: 'Seçilen çalışan kaydı',
     will_be_deleted: 'silinecektir',
+    delete_selected_employees_title: 'Seçili Çalışanları Sil',
+    delete_selected_employees_message: 'Aşağıdaki çalışanlar silinecektir:',
+    delete_all: 'Hepsini Sil',
+    bulk_delete_warning: 'Bu işlem geri alınamaz!',
     proceed: 'Devam Et',
     delete_confirmation:
       'Bu işlem geri alınamaz. Devam etmek istediğinizden emin misiniz?',
@@ -314,6 +318,11 @@ const translations = {
     delete_employee_title: 'Are you sure?',
     delete_employee_message: 'Selected Employee record of',
     will_be_deleted: 'will be deleted',
+    delete_selected_employees_title: 'Delete Selected Employees',
+    delete_selected_employees_message:
+      'The following employees will be deleted:',
+    delete_all: 'Delete All',
+    bulk_delete_warning: 'This action cannot be undone!',
     proceed: 'Proceed',
     delete_confirmation:
       'This action cannot be undone. Are you sure you want to continue?',
@@ -442,6 +451,22 @@ export function formatNumber(number) {
   } else {
     return new Intl.NumberFormat('en-US').format(number);
   }
+}
+
+/**
+ * Gets the display name for a position key
+ * @param {string} positionKey - Position key (e.g., 'junior-developer')
+ * @returns {string} Localized position display name
+ */
+export function getPositionDisplayName(positionKey) {
+  const positionMap = {
+    'junior-developer': t('junior_developer', 'Junior Developer'),
+    'senior-developer': t('senior_developer', 'Senior Developer'),
+    'product-manager': t('product_manager', 'Product Manager'),
+    'ux-designer': t('ux_designer', 'UX Designer'),
+    'data-analyst': t('data_analyst', 'Data Analyst'),
+  };
+  return positionMap[positionKey] || positionKey;
 }
 
 /**

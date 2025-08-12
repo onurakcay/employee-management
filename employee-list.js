@@ -7,14 +7,13 @@
 import {html, css} from 'lit';
 import {ReduxConnectedLitElement} from './src/utils/redux-connected-lit-element.js';
 import {globalStyles} from './src/styles/global-styles.js';
-import {t} from './src/utils/localization.js';
+import {t, getPositionDisplayName} from './src/utils/localization.js';
 import {
   setSearchFilter,
   toggleSortDirection,
   setCurrentPage,
   deleteEmployee,
   setSelectedRows,
-  clearSelectedRows,
 } from './src/store/slices/employeeSlice.js';
 import {
   selectPaginatedEmployees,
@@ -24,6 +23,7 @@ import {
   selectEmployeeError,
   selectSorting,
   selectSelectedRows,
+  selectAllFilteredEmployeeIds,
 } from './src/store/selectors/employeeSelectors.js';
 import './src/components/index.js';
 import './src/components/data-table.js';
@@ -261,6 +261,18 @@ export class EmployeeList extends ReduxConnectedLitElement {
        * @type {Object}
        */
       employeeToDelete: {type: Object, state: true},
+
+      /**
+       * Bulk delete modal visibility state
+       * @type {boolean}
+       */
+      showBulkDeleteModal: {type: Boolean, state: true},
+
+      /**
+       * Selected employees for bulk delete
+       * @type {Array}
+       */
+      selectedEmployeesForDelete: {type: Array, state: true},
     };
   }
 
@@ -270,6 +282,8 @@ export class EmployeeList extends ReduxConnectedLitElement {
     this.viewMode = 'list';
     this.showDeleteModal = false;
     this.employeeToDelete = null;
+    this.showBulkDeleteModal = false;
+    this.selectedEmployeesForDelete = [];
   }
 
   /**
@@ -279,11 +293,21 @@ export class EmployeeList extends ReduxConnectedLitElement {
     return t(key, fallback);
   }
 
+  updated(changedProperties) {
+    super.updated(changedProperties);
+
+    // Check if we need to adjust current page after state changes
+    if (this._currentState) {
+      this._checkAndAdjustCurrentPage();
+    }
+  }
+
   mapStateToProps(state) {
     const paginatedData = selectPaginatedEmployees(state);
     return {
       paginatedEmployees: paginatedData.employees,
       filteredEmployees: paginatedData.filteredEmployees,
+      allFilteredEmployeeIds: selectAllFilteredEmployeeIds(state),
       pagination: {
         currentPage: paginatedData.currentPage,
         totalPages: paginatedData.totalPages,
@@ -322,6 +346,7 @@ export class EmployeeList extends ReduxConnectedLitElement {
         title: this.t('position'),
         sortable: true,
         type: 'badge',
+        render: (value) => getPositionDisplayName(value),
       },
     ];
   }
@@ -344,7 +369,11 @@ export class EmployeeList extends ReduxConnectedLitElement {
           <div class="page-actions">
             ${this._currentState.selectedRows.length > 0
               ? html`
-                  <custom-button variant="primary" size="medium">
+                  <custom-button
+                    variant="primary"
+                    size="medium"
+                    @button-click="${this._handleBulkDelete}"
+                  >
                     ${this.t('delete_selected', 'Delete Selected')}
                   </custom-button>
                 `
@@ -372,6 +401,11 @@ export class EmployeeList extends ReduxConnectedLitElement {
             .data="${this._currentState.paginatedEmployees}"
             .columns="${this.columns}"
             .loading="${this._currentState.loading}"
+            .selectedRows="${this._currentState.selectedRows}"
+            .totalItemCount="${this._currentState.filteredEmployees.length}"
+            .allFilteredEmployeeIds="${this._currentState
+              .allFilteredEmployeeIds}"
+            row-id-field="id"
             @row-select="${this._handleRowSelect}"
             @row-action="${this._handleTableAction}"
             @sort-change="${this._handleSort}"
@@ -416,6 +450,48 @@ export class EmployeeList extends ReduxConnectedLitElement {
               )}
             `}
       </custom-modal>
+
+      <!-- Bulk Delete Confirmation Modal -->
+      <custom-modal
+        ?open="${this.showBulkDeleteModal}"
+        title="${this.t(
+          'delete_selected_employees_title',
+          'Delete Selected Employees'
+        )}"
+        confirm-text="${this.t('delete_all', 'Delete All')}"
+        cancel-text="${this.t('cancel', 'Cancel')}"
+        confirm-variant="danger"
+        size="medium"
+        full-width-actions
+        show-cancel
+        @modal-confirm="${this._handleBulkDeleteConfirm}"
+        @modal-cancel="${this._handleBulkDeleteCancel}"
+        @modal-close="${this._handleBulkDeleteCancel}"
+      >
+        <div>
+          ${this.t(
+            'delete_selected_employees_message',
+            'The following employees will be deleted:'
+          )}
+        </div>
+        <ul
+          style="text-align: left; margin: var(--spacing-md) 0; padding-left: var(--spacing-lg);"
+        >
+          ${this.selectedEmployeesForDelete.map(
+            (emp) => html`
+              <li style="margin-bottom: var(--spacing-xs);">
+                <strong>${emp.firstName} ${emp.lastName}</strong> -
+                ${emp.department}
+              </li>
+            `
+          )}
+        </ul>
+        <div
+          style="color: var(--color-danger); font-weight: var(--font-weight-semibold);"
+        >
+          ${this.t('bulk_delete_warning', 'This action cannot be undone!')}
+        </div>
+      </custom-modal>
     `;
   }
 
@@ -456,7 +532,7 @@ export class EmployeeList extends ReduxConnectedLitElement {
 
   _handlePageChange(event) {
     this.dispatchAction(setCurrentPage(event.detail.currentPage));
-    this.dispatchAction(clearSelectedRows()); // Clear selection when changing pages
+    // Note: Not clearing selection anymore since we use ID-based selection
   }
 
   _handleAddNew() {
@@ -474,6 +550,55 @@ export class EmployeeList extends ReduxConnectedLitElement {
 
   _handleDeleteCancel() {
     this._hideDeleteModal();
+  }
+
+  _handleBulkDelete() {
+    // Get selected employee data
+    const selectedIds = this._currentState.selectedRows;
+    const selectedEmployees = this._currentState.filteredEmployees.filter(
+      (emp) => selectedIds.includes(emp.id)
+    );
+
+    this.selectedEmployeesForDelete = selectedEmployees;
+    this.showBulkDeleteModal = true;
+  }
+
+  _handleBulkDeleteConfirm() {
+    // Delete all selected employees
+    const selectedIds = this._currentState.selectedRows;
+    selectedIds.forEach((id) => {
+      this.dispatchAction(deleteEmployee(id));
+    });
+    this._hideBulkDeleteModal();
+  }
+
+  _handleBulkDeleteCancel() {
+    this._hideBulkDeleteModal();
+  }
+
+  _hideBulkDeleteModal() {
+    this.showBulkDeleteModal = false;
+    this.selectedEmployeesForDelete = [];
+  }
+
+  /**
+   * Check if current page is empty after deletion and navigate to previous page if needed
+   */
+  _checkAndAdjustCurrentPage() {
+    if (!this._currentState || !this._currentState.pagination) return;
+
+    const currentPage = this._currentState.pagination.currentPage;
+    const totalItems = this._currentState.filteredEmployees.length;
+    const itemsPerPage = this._currentState.pagination.itemsPerPage;
+
+    // Calculate what the total pages should be after deletion
+    const newTotalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+
+    // If current page is now beyond the total pages, go to the last valid page
+    if (currentPage > newTotalPages && currentPage > 1) {
+      const newPage = Math.max(1, newTotalPages);
+      this.dispatchAction(setCurrentPage(newPage));
+    }
   }
 
   _hideDeleteModal() {
