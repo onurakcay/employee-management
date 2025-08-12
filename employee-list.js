@@ -7,6 +7,7 @@
 import {html, css} from 'lit';
 import {ReduxConnectedLitElement} from './src/utils/redux-connected-lit-element.js';
 import {globalStyles} from './src/styles/global-styles.js';
+import {t} from './src/utils/localization.js';
 import {
   setSearchFilter,
   toggleSortDirection,
@@ -248,6 +249,18 @@ export class EmployeeList extends ReduxConnectedLitElement {
        * @type {string}
        */
       viewMode: {type: String, state: true},
+
+      /**
+       * Modal visibility state
+       * @type {boolean}
+       */
+      showDeleteModal: {type: Boolean, state: true},
+
+      /**
+       * Employee to be deleted
+       * @type {Object}
+       */
+      employeeToDelete: {type: Object, state: true},
     };
   }
 
@@ -255,6 +268,15 @@ export class EmployeeList extends ReduxConnectedLitElement {
     super();
     // Local UI state only
     this.viewMode = 'list';
+    this.showDeleteModal = false;
+    this.employeeToDelete = null;
+  }
+
+  /**
+   * Helper method for getting translations
+   */
+  t(key, fallback) {
+    return t(key, fallback);
   }
 
   mapStateToProps(state) {
@@ -351,7 +373,7 @@ export class EmployeeList extends ReduxConnectedLitElement {
             .columns="${this.columns}"
             .loading="${this._currentState.loading}"
             @row-select="${this._handleRowSelect}"
-            @row-action="${this._handleRowAction}"
+            @row-action="${this._handleTableAction}"
             @sort-change="${this._handleSort}"
           ></data-table>
         </div>
@@ -365,6 +387,35 @@ export class EmployeeList extends ReduxConnectedLitElement {
           @page-change="${this._handlePageChange}"
         ></custom-pagination>
       </div>
+
+      <!-- Delete Confirmation Modal -->
+      <custom-modal
+        ?open="${this.showDeleteModal}"
+        title="${this.t('delete_employee_title', 'Are you sure?')}"
+        confirm-text="${this.t('proceed', 'Proceed')}"
+        cancel-text="${this.t('cancel', 'Cancel')}"
+        confirm-variant="primary"
+        size="medium"
+        full-width-actions
+        show-cancel
+        @modal-confirm="${this._handleDeleteConfirm}"
+        @modal-cancel="${this._handleDeleteCancel}"
+        @modal-close="${this._handleDeleteCancel}"
+      >
+        ${this.employeeToDelete
+          ? html`
+              ${this.t('delete_employee_message', 'Selected Employee record')}
+              ${this.employeeToDelete.firstName}
+              ${this.employeeToDelete.lastName}
+              ${this.t('will_be_deleted', 'will be deleted')}
+            `
+          : html`
+              ${this.t(
+                'delete_employee_message',
+                'Selected Employee record will be deleted'
+              )}
+            `}
+      </custom-modal>
     `;
   }
 
@@ -380,24 +431,13 @@ export class EmployeeList extends ReduxConnectedLitElement {
     this.dispatchAction(setSelectedRows(event.detail.selectedRows));
   }
 
-  _handleRowAction(event) {
+  _handleTableAction(event) {
     const {action, row, index} = event.detail;
 
-    if (action === 'edit') {
-      // Navigate to edit page
-      window.history.pushState({}, '', `/employees/edit/${row.id}`);
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    } else if (action === 'delete') {
-      if (
-        confirm(
-          this.t(
-            'confirm_delete_employee',
-            'Are you sure you want to delete this employee?'
-          )
-        )
-      ) {
-        this.dispatchAction(deleteEmployee(row.id));
-      }
+    if (action === 'delete') {
+      // Show delete confirmation modal instead of alert
+      this.employeeToDelete = row;
+      this.showDeleteModal = true;
     }
 
     this.dispatchEvent(
@@ -423,6 +463,22 @@ export class EmployeeList extends ReduxConnectedLitElement {
     // Navigate to add employee page
     window.history.pushState({}, '', '/add');
     window.dispatchEvent(new PopStateEvent('popstate'));
+  }
+
+  _handleDeleteConfirm() {
+    if (this.employeeToDelete) {
+      this.dispatchAction(deleteEmployee(this.employeeToDelete.id));
+      this._hideDeleteModal();
+    }
+  }
+
+  _handleDeleteCancel() {
+    this._hideDeleteModal();
+  }
+
+  _hideDeleteModal() {
+    this.showDeleteModal = false;
+    this.employeeToDelete = null;
   }
 }
 

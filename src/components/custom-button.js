@@ -25,6 +25,16 @@ export class CustomButton extends LitElement {
           display: inline-block;
         }
 
+        :host(.full-width) {
+          display: block !important;
+          width: 100% !important;
+        }
+
+        :host(.full-width) button {
+          width: 100% !important;
+          display: block !important;
+        }
+
         button {
           min-width: 80px;
         }
@@ -37,8 +47,8 @@ export class CustomButton extends LitElement {
         }
 
         :host([variant='primary']) button:hover:not(:disabled) {
-          background-color: var(--color-primary-dark);
-          border-color: var(--color-primary-dark);
+          background-color: var(--color-primary);
+          border-color: var(--color-primary);
           box-shadow: var(--shadow-hover);
         }
 

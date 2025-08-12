@@ -139,6 +139,12 @@ const translations = {
     // Confirmation messages
     unsaved_changes_warning:
       'Kaydedilmemiş değişiklikleriniz var. İptal etmek istediğinizden emin misiniz?',
+    delete_employee_title: 'Emin misiniz?',
+    delete_employee_message: 'Seçilen çalışan kaydı',
+    will_be_deleted: 'silinecektir',
+    proceed: 'Devam Et',
+    delete_confirmation:
+      'Bu işlem geri alınamaz. Devam etmek istediğinizden emin misiniz?',
 
     // Success Messages
     employee_added: 'Çalışan başarıyla eklendi',
@@ -305,6 +311,12 @@ const translations = {
     // Confirmation messages
     unsaved_changes_warning:
       'You have unsaved changes. Are you sure you want to cancel?',
+    delete_employee_title: 'Are you sure?',
+    delete_employee_message: 'Selected Employee record of',
+    will_be_deleted: 'will be deleted',
+    proceed: 'Proceed',
+    delete_confirmation:
+      'This action cannot be undone. Are you sure you want to continue?',
 
     // Success Messages
     employee_added: 'Employee added successfully',

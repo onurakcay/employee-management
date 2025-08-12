@@ -140,6 +140,24 @@ export class AddEmployee extends ReduxConnectedLitElement {
        * @type {Object}
        */
       errors: {type: Object, state: true},
+
+      /**
+       * Modal visibility state
+       * @type {boolean}
+       */
+      showModal: {type: Boolean, state: true},
+
+      /**
+       * Modal type (success, error, etc.)
+       * @type {string}
+       */
+      modalType: {type: String, state: true},
+
+      /**
+       * Modal message
+       * @type {string}
+       */
+      modalMessage: {type: String, state: true},
     };
   }
 
@@ -157,6 +175,9 @@ export class AddEmployee extends ReduxConnectedLitElement {
     };
     this.loading = false;
     this.errors = {};
+    this.showModal = false;
+    this.modalType = '';
+    this.modalMessage = '';
   }
 
   /**
@@ -334,6 +355,29 @@ export class AddEmployee extends ReduxConnectedLitElement {
           </form>
         </div>
       </div>
+
+      <!-- Modal -->
+      <custom-modal
+        ?open="${this.showModal}"
+        title="${this.modalType === 'success'
+          ? this.t('success', 'Success')
+          : this.modalType === 'error'
+          ? this.t('error', 'Error')
+          : this.t('confirm', 'Confirm')}"
+        confirm-text="${this.modalType === 'success' ||
+        this.modalType === 'error'
+          ? this.t('close', 'Close')
+          : this.t('proceed', 'Proceed')}"
+        cancel-text="${this.t('cancel', 'Cancel')}"
+        confirm-variant="${this.modalType === 'error' ? 'danger' : 'primary'}"
+        ?show-actions="${true}"
+        full-width-actions
+        @modal-confirm="${this._handleModalConfirm}"
+        @modal-cancel="${this._handleModalCancel}"
+        @modal-close="${this._handleModalClose}"
+      >
+        ${this.modalMessage}
+      </custom-modal>
     `;
   }
 
@@ -580,19 +624,22 @@ export class AddEmployee extends ReduxConnectedLitElement {
       this.dispatchAction(addEmployee(newEmployee));
 
       // Show success message
-      alert(this.t('employee_added', 'Employee added successfully'));
+      this._showModal(
+        'success',
+        this.t('employee_added', 'Employee added successfully')
+      );
 
       // Reset form
       this._resetForm();
 
-      // Navigate back to employee list
+      // Navigate back to employee list after modal is closed
       setTimeout(() => {
-        this._navigateToEmployeeList();
         this.loading = false;
-      }, 500);
+      }, 100);
     } catch (error) {
       console.error('Employee save error:', error);
-      alert(
+      this._showModal(
+        'error',
         this.t('employee_add_error', 'Error occurred while adding employee')
       );
       this.loading = false;
@@ -652,6 +699,38 @@ export class AddEmployee extends ReduxConnectedLitElement {
       position: '',
     };
     this.errors = {};
+  }
+
+  _showModal(type, message) {
+    this.modalType = type;
+    this.modalMessage = message;
+    this.showModal = true;
+  }
+
+  _hideModal() {
+    this.showModal = false;
+    this.modalType = '';
+    this.modalMessage = '';
+  }
+
+  _handleModalConfirm() {
+    if (this.modalType === 'success') {
+      this._hideModal();
+      this._navigateToEmployeeList();
+    } else if (this.modalType === 'error') {
+      this._hideModal();
+    }
+  }
+
+  _handleModalCancel() {
+    this._hideModal();
+  }
+
+  _handleModalClose() {
+    this._hideModal();
+    if (this.modalType === 'success') {
+      this._navigateToEmployeeList();
+    }
   }
 }
 
