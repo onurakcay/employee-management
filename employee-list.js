@@ -5,8 +5,31 @@
  */
 
 import {html, css} from 'lit';
-import {LocalizedLitElement} from './src/utils/localized-lit-element.js';
+import {ReduxConnectedLitElement} from './src/utils/redux-connected-lit-element.js';
 import {globalStyles} from './src/styles/global-styles.js';
+import {
+  setSearchFilter,
+  setDepartmentFilter,
+  setStatusFilter,
+  clearFilters,
+  toggleSortDirection,
+  setCurrentPage,
+  setItemsPerPage,
+  deleteEmployee,
+  deleteSelectedEmployees,
+  setSelectedRows,
+  clearSelectedRows,
+} from './src/store/slices/employeeSlice.js';
+import {
+  selectPaginatedEmployees,
+  selectFilters,
+  selectUniqueDepartments,
+  selectEmployeeLoading,
+  selectEmployeeError,
+  selectSorting,
+  selectPagination,
+  selectSelectedRows,
+} from './src/store/selectors/employeeSelectors.js';
 import './src/components/index.js';
 import './src/components/data-table.js';
 import './src/components/custom-pagination.js';
@@ -16,7 +39,7 @@ import './src/components/custom-pagination.js';
  *
  * @fires employee-action - Dispatched when employee action is performed
  */
-export class EmployeeList extends LocalizedLitElement {
+export class EmployeeList extends ReduxConnectedLitElement {
   static get styles() {
     return [
       globalStyles,
@@ -221,165 +244,37 @@ export class EmployeeList extends LocalizedLitElement {
   static get properties() {
     return {
       /**
-       * Employee data
-       * @type {Array}
-       */
-      employees: {type: Array, state: true},
-
-      /**
-       * Filtered employees
-       * @type {Array}
-       */
-      filteredEmployees: {type: Array, state: true},
-
-      /**
-       * Selected employee rows
+       * Selected employee rows (local state)
        * @type {Array}
        */
       selectedRows: {type: Array, state: true},
-
-      /**
-       * Current page
-       * @type {number}
-       */
-      currentPage: {type: Number, state: true},
-
-      /**
-       * Items per page
-       * @type {number}
-       */
-      itemsPerPage: {type: Number, state: true},
-
-      /**
-       * Search query
-       * @type {string}
-       */
-      searchQuery: {type: String, state: true},
 
       /**
        * View mode (list or grid)
        * @type {string}
        */
       viewMode: {type: String, state: true},
-
-      /**
-       * Loading state
-       * @type {boolean}
-       */
-      loading: {type: Boolean, state: true},
     };
   }
 
   constructor() {
     super();
-    this.employees = [];
-    this.filteredEmployees = [];
-    this.selectedRows = [];
-    this.currentPage = 1;
-    this.itemsPerPage = 9;
-    this.searchQuery = '';
+    // Local UI state only
     this.viewMode = 'list';
-    this.loading = false;
-
-    this._initializeData();
   }
 
-  _initializeData() {
-    // Sample employee data based on the image
-    this.employees = [
-      {
-        firstName: 'Ahmet',
-        lastName: 'Sourtimes',
-        dateOfEmployment: '23/09/2022',
-        dateOfBirth: '23/09/2022',
-        phone: '+(90) 532 123 45 67',
-        email: 'ahmet@sourtimes.org',
-        department: 'Analytics',
-        position: 'Junior',
-      },
-      {
-        firstName: 'Mehmet',
-        lastName: 'Yılmaz',
-        dateOfEmployment: '15/03/2021',
-        dateOfBirth: '12/05/1995',
-        phone: '+(90) 541 987 65 43',
-        email: 'mehmet.yilmaz@ing.com',
-        department: 'Engineering',
-        position: 'Senior',
-      },
-      {
-        firstName: 'Ayşe',
-        lastName: 'Kaya',
-        dateOfEmployment: '08/11/2020',
-        dateOfBirth: '20/08/1988',
-        phone: '+(90) 555 123 45 67',
-        email: 'ayse.kaya@ing.com',
-        department: 'Design',
-        position: 'Lead',
-      },
-      {
-        firstName: 'Fatma',
-        lastName: 'Demir',
-        dateOfEmployment: '03/07/2022',
-        dateOfBirth: '14/12/1992',
-        phone: '+(90) 533 456 78 90',
-        email: 'fatma.demir@ing.com',
-        department: 'Analytics',
-        position: 'Junior',
-      },
-      {
-        firstName: 'Ali',
-        lastName: 'Özkan',
-        dateOfEmployment: '29/01/2021',
-        dateOfBirth: '07/03/1985',
-        phone: '+(90) 542 765 43 21',
-        email: 'ali.ozkan@ing.com',
-        department: 'Product',
-        position: 'Senior',
-      },
-      {
-        firstName: 'Zeynep',
-        lastName: 'Aksoy',
-        dateOfEmployment: '17/09/2022',
-        dateOfBirth: '25/11/1990',
-        phone: '+(90) 534 654 32 10',
-        email: 'zeynep.aksoy@ing.com',
-        department: 'Marketing',
-        position: 'Junior',
-      },
-      {
-        firstName: 'Burak',
-        lastName: 'Şahin',
-        dateOfEmployment: '12/04/2020',
-        dateOfBirth: '18/06/1987',
-        phone: '+(90) 536 321 54 87',
-        email: 'burak.sahin@ing.com',
-        department: 'Engineering',
-        position: 'Lead',
-      },
-      {
-        firstName: 'Seda',
-        lastName: 'Çelik',
-        dateOfEmployment: '05/12/2021',
-        dateOfBirth: '09/01/1993',
-        phone: '+(90) 537 147 25 83',
-        email: 'seda.celik@ing.com',
-        department: 'Analytics',
-        position: 'Senior',
-      },
-      {
-        firstName: 'Emre',
-        lastName: 'Koç',
-        dateOfEmployment: '21/06/2022',
-        dateOfBirth: '03/10/1989',
-        phone: '+(90) 538 963 74 15',
-        email: 'emre.koc@ing.com',
-        department: 'Design',
-        position: 'Junior',
-      },
-    ];
-
-    this.filteredEmployees = [...this.employees];
+  mapStateToProps(state) {
+    return {
+      paginatedEmployees: selectPaginatedEmployees(state).employees,
+      filteredEmployees: selectPaginatedEmployees(state).filteredEmployees,
+      pagination: selectPagination(state),
+      selectedRows: selectSelectedRows(state),
+      sorting: selectSorting(state),
+      filters: selectFilters(state),
+      departments: selectUniqueDepartments(state),
+      loading: selectEmployeeLoading(state),
+      error: selectEmployeeError(state),
+    };
   }
 
   get columns() {
@@ -389,7 +284,7 @@ export class EmployeeList extends LocalizedLitElement {
       {key: 'dateOfEmployment', title: this.t('hire_date'), sortable: true},
       {
         key: 'dateOfBirth',
-        title: this.t('date_of_birth', 'Date of Birth'),
+        title: this.t('date_of_birth'),
         sortable: true,
       },
       {key: 'phone', title: this.t('phone_label', 'Phone'), sortable: false},
@@ -409,16 +304,6 @@ export class EmployeeList extends LocalizedLitElement {
     ];
   }
 
-  get paginatedEmployees() {
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredEmployees.slice(start, end);
-  }
-
-  get totalPages() {
-    return Math.ceil(this.filteredEmployees.length / this.itemsPerPage);
-  }
-
   render() {
     return html`
       <!-- Navigation Header -->
@@ -435,7 +320,7 @@ export class EmployeeList extends LocalizedLitElement {
             <h1>${this.t('employee_list_title')}</h1>
           </div>
           <div class="page-actions">
-            ${this.selectedRows.length > 0
+            ${this._currentState.selectedRows.length > 0
               ? html`
                   <custom-button variant="danger" size="small">
                     ${this.t('delete_selected', 'Delete Selected')}
@@ -462,9 +347,9 @@ export class EmployeeList extends LocalizedLitElement {
         <!-- Data Table -->
         <div class="table-container">
           <data-table
-            .data="${this.paginatedEmployees}"
+            .data="${this._currentState.paginatedEmployees}"
             .columns="${this.columns}"
-            .loading="${this.loading}"
+            .loading="${this._currentState.loading}"
             @row-select="${this._handleRowSelect}"
             @row-action="${this._handleRowAction}"
             @sort-change="${this._handleSort}"
@@ -473,10 +358,10 @@ export class EmployeeList extends LocalizedLitElement {
 
         <!-- Pagination -->
         <custom-pagination
-          .currentPage="${this.currentPage}"
-          .totalPages="${this.totalPages}"
-          .totalItems="${this.filteredEmployees.length}"
-          .itemsPerPage="${this.itemsPerPage}"
+          .currentPage="${this._currentState.pagination.currentPage}"
+          .totalPages="${this._currentState.pagination.totalPages}"
+          .totalItems="${this._currentState.filteredEmployees.length}"
+          .itemsPerPage="${this._currentState.pagination.itemsPerPage}"
           @page-change="${this._handlePageChange}"
         ></custom-pagination>
       </div>
@@ -488,26 +373,32 @@ export class EmployeeList extends LocalizedLitElement {
   }
 
   _handleSearch(event) {
-    this.searchQuery = event.detail.value.toLowerCase();
-    this.currentPage = 1;
-
-    if (!this.searchQuery) {
-      this.filteredEmployees = [...this.employees];
-    } else {
-      this.filteredEmployees = this.employees.filter((employee) =>
-        Object.values(employee).some((value) =>
-          value.toString().toLowerCase().includes(this.searchQuery)
-        )
-      );
-    }
+    this.dispatchAction(setSearchFilter(event.detail.value));
   }
 
   _handleRowSelect(event) {
-    this.selectedRows = event.detail.selectedRows;
+    this.dispatchAction(setSelectedRows(event.detail.selectedRows));
   }
 
   _handleRowAction(event) {
     const {action, row, index} = event.detail;
+
+    if (action === 'edit') {
+      // Navigate to edit page
+      window.history.pushState({}, '', `/employees/edit/${row.id}`);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    } else if (action === 'delete') {
+      if (
+        confirm(
+          this.t(
+            'confirm_delete_employee',
+            'Are you sure you want to delete this employee?'
+          )
+        )
+      ) {
+        this.dispatchAction(deleteEmployee(row.id));
+      }
+    }
 
     this.dispatchEvent(
       new CustomEvent('employee-action', {
@@ -516,46 +407,21 @@ export class EmployeeList extends LocalizedLitElement {
         composed: true,
       })
     );
-
-    // Handle actions
-    if (action === 'edit') {
-      console.log('Edit employee:', row);
-    } else if (action === 'delete') {
-      console.log('Delete employee:', row);
-    }
   }
 
   _handleSort(event) {
-    const {column, direction} = event.detail;
-
-    this.filteredEmployees.sort((a, b) => {
-      let aVal = a[column];
-      let bVal = b[column];
-
-      // Handle date sorting
-      if (column.includes('date') || column.includes('Date')) {
-        aVal = new Date(aVal.split('/').reverse().join('-'));
-        bVal = new Date(bVal.split('/').reverse().join('-'));
-      }
-
-      if (direction === 'asc') {
-        return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-      } else {
-        return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
-      }
-    });
-
-    this.requestUpdate();
+    const {column} = event.detail;
+    this.dispatchAction(toggleSortDirection(column));
   }
 
   _handlePageChange(event) {
-    this.currentPage = event.detail.currentPage;
-    this.selectedRows = []; // Clear selection when changing pages
+    this.dispatchAction(setCurrentPage(event.detail.currentPage));
+    this.dispatchAction(clearSelectedRows()); // Clear selection when changing pages
   }
 
   _handleAddNew() {
     // Navigate to add employee page
-    window.history.pushState({}, '', '/employees/add');
+    window.history.pushState({}, '', '/add');
     window.dispatchEvent(new PopStateEvent('popstate'));
   }
 }

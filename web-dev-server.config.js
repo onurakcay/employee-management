@@ -19,9 +19,12 @@ export default {
   // Serve static files from public directory
   middleware: [
     function servePublic(context, next) {
-      if (context.url.startsWith('/public/')) {
-        // Remove /public prefix to serve files from public directory
-        context.url = context.url.replace('/public', '');
+      // Serve files from public directory when requested without /public prefix
+      if (
+        context.url.startsWith('/images/') ||
+        context.url.startsWith('/assets/')
+      ) {
+        context.url = '/public' + context.url;
       }
       return next();
     },

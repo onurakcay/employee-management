@@ -21,8 +21,21 @@ export default {
     }
   },
   plugins: [
-    replace({preventAssignment: false, 'Reflect.decorate': 'undefined'}),
-    resolve(),
+    replace({
+      preventAssignment: true,
+      values: {
+        'process.env.NODE_ENV': JSON.stringify('development'),
+        process: JSON.stringify({
+          env: {NODE_ENV: 'development'},
+          browser: true,
+        }),
+        global: 'globalThis',
+      },
+    }),
+    resolve({
+      browser: true,
+      preferBuiltins: false,
+    }),
     /**
      * This minification setup serves the static site generation.
      * For bundling and minification, check the README.md file.
