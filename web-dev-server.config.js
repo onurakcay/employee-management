@@ -14,6 +14,20 @@ if (!['dev', 'prod'].includes(mode)) {
 export default {
   nodeResolve: {exportConditions: mode === 'dev' ? ['development'] : []},
   preserveSymlinks: true,
+  // Static files configuration
+  rootDir: '.',
+  // Serve static files from public directory
+  middleware: [
+    function servePublic(context, next) {
+      if (context.url.startsWith('/public/')) {
+        // Remove /public prefix to serve files from public directory
+        context.url = context.url.replace('/public', '');
+      }
+      return next();
+    },
+  ],
+  // SPA configuration - redirect all routes to index.html
+  historyApiFallback: true,
   plugins: [
     legacyPlugin({
       polyfills: {

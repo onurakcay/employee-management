@@ -1,11 +1,76 @@
-<!doctype html>
-
-<html>
+<!DOCTYPE html>
+<html lang="tr">
   <head>
     <meta charset="utf-8" />
-    <title>Lit Starter Kit</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta
+      name="Description"
+      content="ING Hubs - Employee List Management System"
+    />
+    <base href="/" />
+
+    <style>
+      /* Global CSS Custom Properties */
+      :root {
+        /* ING Brand Colors */
+        --ing-primary: #e60026;
+        --ing-primary-dark: #cc0022;
+        --ing-primary-light: #ff4757;
+        --ing-orange: #ff6200;
+        --ing-orange-dark: #e55100;
+
+        /* Semantic Colors */
+        --color-primary: var(--ing-primary);
+        --color-primary-dark: var(--ing-primary-dark);
+        --color-secondary: #0066cc;
+        --color-success: #28a745;
+        --color-warning: #ffc107;
+        --color-danger: #dc3545;
+        --color-info: #17a2b8;
+
+        /* Neutral Colors */
+        --color-white: #ffffff;
+        --color-light: #f8f9fa;
+        --color-light-gray: #e9ecef;
+        --color-gray: #6c757d;
+        --color-dark-gray: #495057;
+        --color-dark: #343a40;
+        --color-black: #000000;
+
+        /* Background Colors */
+        --bg-primary: var(--color-white);
+        --bg-secondary: var(--color-light);
+        --bg-dark: var(--color-dark);
+        --bg-brand: var(--ing-primary);
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Arial, sans-serif;
+        background-color: var(--color-light);
+        color: var(--color-dark);
+      }
+
+      app-router {
+        display: block;
+        min-height: 100vh;
+      }
+    </style>
+    <title>ING Hubs - Employee Management</title>
   </head>
+
   <body>
-    <a href="/dev/index.html">Component Demo</a>
+    <app-router></app-router>
+
+    <script type="module" src="./app-router.js"></script>
+    <script type="module" src="./employee-list.js"></script>
+    <script type="module" src="./add-employee.js"></script>
+    <script type="module" src="./not-found-view.js"></script>
   </body>
 </html>
