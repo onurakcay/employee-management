@@ -10,9 +10,9 @@ import resolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 
 export default {
-  input: 'employee-list.js',
+  input: 'my-element.js',
   output: {
-    file: 'dist/employee-list.bundled.js',
+    file: 'dist/my-element.bundled.js',
     format: 'esm',
   },
   onwarn(warning) {
