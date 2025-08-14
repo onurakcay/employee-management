@@ -7,7 +7,10 @@
   "module": "my-element.js",
   "type": "module",
   "scripts": {
-    "build": "echo \"This is not a TypeScript project, so no need to build.\"",
+    "build": "npm run build:rollup && npm run build:copy",
+    "build:rollup": "rollup -c",
+    "build:copy": "cp index.html dist/ && cp -r public dist/ || echo 'No public folder'",
+    "dev": "wds --watch",
     "lint": "npm run lint:lit-analyzer && npm run lint:eslint",
     "lint:eslint": "eslint '**/*.js'",
     "lint:lit-analyzer": "lit-analyzer my-element.js",
