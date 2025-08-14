@@ -110,6 +110,14 @@ export class AppNavbar extends LocalizedLitElement {
           .header-right {
             gap: var(--spacing-sm);
           }
+
+          .nav-button .nav-text {
+            display: none; /* Mobilde text'leri gizle */
+          }
+
+          .nav-button .nav-icon {
+            font-size: 1.2em; /* Icon'ları biraz büyüt */
+          }
         }
       `,
     ];
@@ -147,15 +155,19 @@ export class AppNavbar extends LocalizedLitElement {
         <div class="header-right">
           <custom-button
             variant="link"
+            class="nav-button"
             @button-click="${this._handleEmployeesClick}"
           >
-            👥 ${this.t('employees')}
+            <span class="nav-icon">👥</span>
+            <span class="nav-text">${this.t('employees')}</span>
           </custom-button>
           <custom-button
             variant="link"
+            class="nav-button"
             @button-click="${this._handleAddEmployeeClick}"
           >
-            + ${this.t('add_employee')}
+            <span class="nav-icon">+</span>
+            <span class="nav-text">${this.t('add_employee')}</span>
           </custom-button>
           <div
             class="country-flag"

@@ -35,6 +35,7 @@ const translations = {
     selected: 'seçildi',
     export_selected: 'Seçilenleri Dışa Aktar',
     delete_selected: 'Seçilenleri Sil',
+    select_all: 'Tümünü Seç',
 
     // Navigation
     home: 'Ana Sayfa',
@@ -220,6 +221,7 @@ const translations = {
     selected: 'selected',
     export_selected: 'Export Selected',
     delete_selected: 'Delete Selected',
+    select_all: 'Select All',
 
     // Navigation
     home: 'Home',

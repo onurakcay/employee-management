@@ -5,6 +5,7 @@
  */
 
 import {LitElement, html, css} from 'lit';
+import {baseStyles} from '../styles/global-styles.js';
 import './employee-card.js';
 
 /**
@@ -17,147 +18,167 @@ import './employee-card.js';
  */
 export class EmployeeCardGrid extends LitElement {
   static get styles() {
-    return css`
-      :host {
-        display: block;
-        font-family: var(--font-family);
-      }
-
-      .grid-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: var(--spacing-lg);
-        padding: var(--spacing-md);
-        background: var(--bg-primary);
-        border-radius: var(--radius-medium);
-        border: 1px solid var(--border-light);
-      }
-
-      .select-all-section {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-      }
-
-      .select-all-label {
-        font-size: var(--font-size-sm);
-        color: var(--color-dark);
-        font-weight: var(--font-weight-medium);
-      }
-
-      .results-info {
-        font-size: var(--font-size-sm);
-        color: var(--color-gray);
-      }
-
-      .cards-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        row-gap: 60px;
-        column-gap: 60px;
-        margin-bottom: var(--spacing-xl);
-        align-items: stretch;
-      }
-
-      .no-results {
-        text-align: center;
-        padding: var(--spacing-xxl);
-        color: var(--color-gray);
-        font-size: var(--font-size-lg);
-        grid-column: 1 / -1;
-      }
-
-      .no-results-icon {
-        font-size: 4rem;
-        margin-bottom: var(--spacing-md);
-        opacity: 0.5;
-      }
-
-      .loading-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        row-gap: 60px;
-        column-gap: 60px;
-        align-items: stretch;
-      }
-
-      .loading-card {
-        background: var(--bg-light);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-large);
-        padding: var(--spacing-lg);
-        height: 320px;
-        animation: pulse 1.5s ease-in-out infinite;
-      }
-
-      @keyframes pulse {
-        0% {
-          opacity: 1;
+    return [
+      baseStyles,
+      css`
+        :host {
+          display: block;
+          font-family: var(--font-family);
         }
-        50% {
-          opacity: 0.5;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
 
-      .loading-skeleton {
-        background: var(--border-light);
-        border-radius: var(--radius-small);
-        margin-bottom: var(--spacing-sm);
-      }
-
-      .skeleton-title {
-        height: 20px;
-        width: 70%;
-      }
-
-      .skeleton-subtitle {
-        height: 14px;
-        width: 50%;
-      }
-
-      .skeleton-line {
-        height: 12px;
-        width: 100%;
-      }
-
-      .skeleton-line.short {
-        width: 60%;
-      }
-
-      /* Responsive design */
-      @media (max-width: 1024px) {
-        .cards-grid,
-        .loading-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      @media (max-width: 768px) {
         .grid-header {
-          flex-direction: column;
-          gap: var(--spacing-sm);
-          align-items: stretch;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: var(--spacing-lg);
+          padding: var(--spacing-md);
+          background: var(--bg-primary);
+          border-radius: var(--radius-medium);
+          border: 1px solid var(--border-light);
         }
 
         .select-all-section {
-          justify-content: center;
+          display: flex;
+          align-items: center;
+          gap: var(--spacing-sm);
+        }
+
+        .select-all-label {
+          font-size: var(--font-size-sm);
+          color: var(--color-dark);
+          font-weight: var(--font-weight-medium);
         }
 
         .results-info {
-          text-align: center;
+          font-size: var(--font-size-sm);
+          color: var(--color-gray);
         }
 
-        .cards-grid,
-        .loading-grid {
-          row-gap: var(--spacing-xl);
-          column-gap: var(--spacing-xl);
+        .cards-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          row-gap: 60px;
+          column-gap: 60px;
+          margin-bottom: var(--spacing-xl);
+          align-items: stretch;
         }
-      }
-    `;
+
+        .no-results {
+          text-align: center;
+          padding: var(--spacing-xxl);
+          color: var(--color-gray);
+          font-size: var(--font-size-lg);
+          grid-column: 1 / -1;
+        }
+
+        .no-results-icon {
+          font-size: 4rem;
+          margin-bottom: var(--spacing-md);
+          opacity: 0.5;
+        }
+
+        .loading-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          row-gap: 60px;
+          column-gap: 60px;
+          align-items: stretch;
+        }
+
+        .loading-card {
+          background: var(--bg-light);
+          border: 1px solid var(--border-light);
+          border-radius: var(--radius-large);
+          padding: var(--spacing-lg);
+          height: 320px;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+          0% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+          100% {
+            opacity: 1;
+          }
+        }
+
+        .loading-skeleton {
+          background: var(--border-light);
+          border-radius: var(--radius-small);
+          margin-bottom: var(--spacing-sm);
+        }
+
+        .skeleton-title {
+          height: 20px;
+          width: 70%;
+        }
+
+        .skeleton-subtitle {
+          height: 14px;
+          width: 50%;
+        }
+
+        .skeleton-line {
+          height: 12px;
+          width: 100%;
+        }
+
+        .skeleton-line.short {
+          width: 60%;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1024px) {
+          .cards-grid,
+          .loading-grid {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-lg);
+          }
+        }
+
+        @media (max-width: 768px) {
+          .grid-header {
+            flex-direction: row;
+            gap: var(--spacing-sm);
+            align-items: stretch;
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+          }
+
+          .select-all-section {
+            justify-content: center;
+          }
+
+          .results-info {
+            text-align: center;
+            font-size: var(--font-size-sm);
+          }
+
+          .cards-grid,
+          .loading-grid {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+            padding: 0 var(--spacing-sm);
+          }
+        }
+
+        @media (max-width: 480px) {
+          .grid-header {
+            padding: var(--spacing-sm);
+          }
+
+          .cards-grid,
+          .loading-grid {
+            padding: 0;
+            gap: var(--spacing-sm);
+          }
+        }
+      `,
+    ];
   }
 
   static get properties() {
@@ -337,18 +358,10 @@ export class EmployeeCardGrid extends LitElement {
   }
 
   _handleCardSelect(event) {
-    const {employee, selected} = event.detail;
-
-    let newSelectedRows;
-    if (selected) {
-      newSelectedRows = [...this.selectedRows, employee.id];
-    } else {
-      newSelectedRows = this.selectedRows.filter((id) => id !== employee.id);
-    }
-
+    // Just pass through the card selection event
     this.dispatchEvent(
       new CustomEvent('card-select', {
-        detail: {selectedRows: newSelectedRows},
+        detail: event.detail,
         bubbles: true,
         composed: true,
       })

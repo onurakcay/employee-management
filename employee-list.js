@@ -126,40 +126,40 @@ export class EmployeeList extends ReduxConnectedLitElement {
 
         .view-toggle {
           display: flex;
-          gap: var(--spacing-xs);
-          background-color: var(--bg-primary);
+          gap: 2px;
+          background-color: var(--bg-secondary);
           border-radius: var(--radius-medium);
-          padding: var(--spacing-xs);
-          border: 1px solid var(--border-color-light);
-          box-shadow: var(--shadow-light);
+          padding: 4px;
         }
 
         .view-button {
-          padding: var(--spacing-sm) var(--spacing-md);
+          padding: var(--spacing-sm);
           border: none;
-          background: none;
+          background: transparent;
           border-radius: var(--radius-small);
           cursor: pointer;
           color: var(--text-secondary);
           transition: all 0.2s ease;
-          font-size: var(--font-size-md);
-          min-width: 40px;
+          min-width: 36px;
           height: 36px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: var(--font-weight-medium);
+          position: relative;
+        }
+
+        .view-button svg {
+          transition: all 0.2s ease;
         }
 
         .view-button.active {
-          background-color: var(--color-primary);
-          color: var(--text-white);
+          color: var(--color-primary);
           box-shadow: var(--shadow-small);
         }
 
         .view-button:hover:not(.active) {
-          background-color: var(--bg-secondary);
-          color: var(--color-primary);
+          background-color: var(--bg-light);
+          color: var(--text-primary);
         }
 
         .page-actions {
@@ -236,6 +236,10 @@ export class EmployeeList extends ReduxConnectedLitElement {
             width: 200px;
           }
 
+          .view-toggle {
+            display: none; /* Mobilde view toggle gizle */
+          }
+
           .actions-toolbar {
             flex-direction: column;
             align-items: flex-start;
@@ -294,6 +298,9 @@ export class EmployeeList extends ReduxConnectedLitElement {
     this.employeeToDelete = null;
     this.showBulkDeleteModal = false;
     this.selectedEmployeesForDelete = [];
+
+    // Mobile responsive handler
+    this._handleResize = this._handleResize.bind(this);
   }
 
   /**
@@ -333,9 +340,37 @@ export class EmployeeList extends ReduxConnectedLitElement {
 
   connectedCallback() {
     super.connectedCallback();
+
+    // Check if mobile and set viewMode accordingly
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+      this.viewMode = 'grid';
+      localStorage.setItem('employee-view-mode', 'grid');
+    }
+
     // Set items per page based on the loaded view mode
     const itemsPerPage = this.viewMode === 'grid' ? 4 : 10;
     this.dispatchAction(setItemsPerPage(itemsPerPage));
+
+    // Add resize listener
+    window.addEventListener('resize', this._handleResize);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // Remove resize listener
+    window.removeEventListener('resize', this._handleResize);
+  }
+
+  _handleResize() {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile && this.viewMode !== 'grid') {
+      this.viewMode = 'grid';
+      localStorage.setItem('employee-view-mode', 'grid');
+      const itemsPerPage = 4;
+      this.dispatchAction(setItemsPerPage(itemsPerPage));
+      this.requestUpdate();
+    }
   }
 
   updated(changedProperties) {
@@ -429,14 +464,28 @@ export class EmployeeList extends ReduxConnectedLitElement {
                 @click="${() => this._setViewMode('list')}"
                 title="${this.t('list_view', 'List View')}"
               >
-                📋
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 28 28"
+                  fill="currentColor"
+                >
+                  <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z" />
+                </svg>
               </button>
               <button
                 class="view-button ${this.viewMode === 'grid' ? 'active' : ''}"
                 @click="${() => this._setViewMode('grid')}"
                 title="${this.t('card_view', 'Card View')}"
               >
-                🗂️
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 28 28"
+                  fill="currentColor"
+                >
+                  <path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z" />
+                </svg>
               </button>
             </div>
           </div>
@@ -591,8 +640,20 @@ export class EmployeeList extends ReduxConnectedLitElement {
   }
 
   _handleCardSelect(event) {
-    // Card selection uses same handler as table row selection
-    this._handleRowSelect(event);
+    // Card selection event comes with {employee, selected} format
+    // Convert it to the same format as table row selection
+    const {employee, selected} = event.detail;
+
+    let newSelectedRows;
+    if (selected) {
+      newSelectedRows = [...this._currentState.selectedRows, employee.id];
+    } else {
+      newSelectedRows = this._currentState.selectedRows.filter(
+        (id) => id !== employee.id
+      );
+    }
+
+    this.dispatchAction(setSelectedRows(newSelectedRows));
   }
 
   _handleSelectAll(event) {
