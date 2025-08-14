@@ -13,7 +13,7 @@
 const translations = {
   tr: {
     // Common
-    cancel: 'İptall',
+    cancel: 'İptal',
     save: 'Kaydet',
     save_employee: 'Çalışanı Kaydet',
     edit: 'Düzenle',
