@@ -13,6 +13,8 @@ export {CustomModal} from './custom-modal.js';
 export {DataTable} from './data-table.js';
 export {CustomPagination} from './custom-pagination.js';
 export {AppNavbar} from './app-navbar.js';
+export {EmployeeCard} from './employee-card.js';
+export {EmployeeCardGrid} from './employee-card-grid.js';
 
 // Import all components to register them
 import './custom-button.js';
@@ -23,3 +25,5 @@ import './custom-modal.js';
 import './data-table.js';
 import './custom-pagination.js';
 import './app-navbar.js';
+import './employee-card.js';
+import './employee-card-grid.js';

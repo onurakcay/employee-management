@@ -198,7 +198,7 @@ const initialState = {
   },
   pagination: {
     currentPage: 1,
-    itemsPerPage: 5,
+    itemsPerPage: 10, // Default for list view
     totalItems: 0,
   },
 };

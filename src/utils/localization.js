@@ -41,6 +41,7 @@ const translations = {
     employees: 'Çalışanlar',
     employee_list: 'Çalışan Listesi',
     add_employee: 'Çalışan Ekle',
+    edit_employee: 'Çalışanı Düzenle',
     employee_management: 'Çalışan Yönetimi',
     dashboard: 'Panel',
 
@@ -48,6 +49,8 @@ const translations = {
     employee_list_title: 'Çalışan Listesi',
     search_employees: 'Çalışanları ara...',
     add_new_employee: 'Yeni Çalışan Ekle',
+    list_view: 'Liste Görünümü',
+    card_view: 'Kart Görünümü',
     total_employees: 'Toplam Çalışan',
     active_employees: 'Aktif Çalışan',
     no_employees_found: 'Çalışan bulunamadı',
@@ -74,6 +77,12 @@ const translations = {
 
     // Add Employee Form
     add_employee_title: 'Yeni Çalışan Ekle',
+    edit_employee_title: 'Çalışanı Düzenle',
+    update_employee: 'Çalışanı Güncelle',
+    editing_employee_info: 'Düzenlenmekte olan çalışan:',
+    employee_not_found: 'Çalışan Bulunamadı',
+    employee_not_found_message: 'Düzenlemek istediğiniz çalışan bulunamadı.',
+    back_to_list: 'Listeye Geri Dön',
     employee_information: 'Çalışan Bilgileri',
     personal_info: 'Kişisel Bilgiler',
     contact_info: 'İletişim Bilgileri',
@@ -217,6 +226,7 @@ const translations = {
     employees: 'Employees',
     employee_list: 'Employee List',
     add_employee: 'Add Employee',
+    edit_employee: 'Edit Employee',
     employee_management: 'Employee Management',
     dashboard: 'Dashboard',
 
@@ -224,6 +234,8 @@ const translations = {
     employee_list_title: 'Employee List',
     search_employees: 'Search employees...',
     add_new_employee: 'Add New Employee',
+    list_view: 'List View',
+    card_view: 'Card View',
     total_employees: 'Total Employees',
     active_employees: 'Active Employees',
     no_employees_found: 'No employees found',
@@ -250,6 +262,13 @@ const translations = {
 
     // Add Employee Form
     add_employee_title: 'Add New Employee',
+    edit_employee_title: 'Edit Employee',
+    update_employee: 'Update Employee',
+    editing_employee_info: 'You are editing',
+    employee_not_found: 'Employee Not Found',
+    employee_not_found_message:
+      'The employee you are trying to edit could not be found.',
+    back_to_list: 'Back to Employee List',
     employee_information: 'Employee Information',
     personal_info: 'Personal Information',
     contact_info: 'Contact Information',

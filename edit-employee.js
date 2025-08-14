@@ -6,18 +6,18 @@
 
 import {html, css} from 'lit';
 import {ReduxConnectedLitElement} from './src/utils/redux-connected-lit-element.js';
-import {addEmployee, setCurrentPage} from './src/store/slices/employeeSlice.js';
+import {updateEmployee} from './src/store/slices/employeeSlice.js';
 import {t} from './src/utils/localization.js';
 import {globalStyles} from './src/styles/global-styles.js';
 import './src/components/index.js';
 
 /**
- * Add Employee page component
+ * Edit Employee page component
  *
- * @fires employee-save - Dispatched when employee is saved
+ * @fires employee-update - Dispatched when employee is updated
  * @fires employee-cancel - Dispatched when action is cancelled
  */
-export class AddEmployee extends ReduxConnectedLitElement {
+export class EditEmployee extends ReduxConnectedLitElement {
   static get styles() {
     return [
       globalStyles,
@@ -40,7 +40,16 @@ export class AddEmployee extends ReduxConnectedLitElement {
           font-size: var(--font-size-xl);
           font-weight: var(--font-weight-bold);
           color: var(--color-primary);
-          margin: 0 0 var(--spacing-xl) 0;
+          margin: 0 0 var(--spacing-md) 0;
+        }
+
+        .edit-info {
+          background-color: var(--bg-info);
+          border: 1px solid var(--border-info);
+          border-radius: var(--radius-medium);
+          margin-bottom: var(--spacing-lg);
+          color: var(--text-info);
+          font-weight: var(--font-weight-medium);
         }
 
         .form-container {
@@ -97,19 +106,6 @@ export class AddEmployee extends ReduxConnectedLitElement {
           .form-container {
             padding: var(--spacing-lg) var(--spacing-md);
           }
-
-          .header {
-            padding: var(--spacing-sm) var(--spacing-md);
-          }
-
-          .header-left,
-          .header-right {
-            gap: var(--spacing-sm);
-          }
-
-          .user-info span {
-            display: none;
-          }
         }
 
         @media (max-width: 1024px) and (min-width: 769px) {
@@ -124,10 +120,22 @@ export class AddEmployee extends ReduxConnectedLitElement {
   static get properties() {
     return {
       /**
+       * Employee ID being edited
+       * @type {string}
+       */
+      employeeId: {type: String, state: true},
+
+      /**
        * Employee data for the form
        * @type {Object}
        */
       employeeData: {type: Object, state: true},
+
+      /**
+       * Original employee data for comparison
+       * @type {Object}
+       */
+      originalEmployeeData: {type: Object, state: true},
 
       /**
        * Loading state
@@ -160,27 +168,16 @@ export class AddEmployee extends ReduxConnectedLitElement {
       modalMessage: {type: String, state: true},
 
       /**
-       * Edit mode - true if editing existing employee
+       * Employee not found state
        * @type {boolean}
        */
-      isEditMode: {type: Boolean, state: true},
-
-      /**
-       * Employee ID being edited
-       * @type {string|number}
-       */
-      editEmployeeId: {type: String, state: true},
-
-      /**
-       * Employee being edited (for display name)
-       * @type {Object}
-       */
-      editingEmployee: {type: Object, state: true},
+      employeeNotFound: {type: Boolean, state: true},
     };
   }
 
   constructor() {
     super();
+    this.employeeId = '';
     this.employeeData = {
       firstName: '',
       lastName: '',
@@ -191,14 +188,13 @@ export class AddEmployee extends ReduxConnectedLitElement {
       department: '',
       position: '',
     };
+    this.originalEmployeeData = {};
     this.loading = false;
     this.errors = {};
     this.showModal = false;
     this.modalType = '';
     this.modalMessage = '';
-    this.isEditMode = false;
-    this.editEmployeeId = null;
-    this.editingEmployee = null;
+    this.employeeNotFound = false;
   }
 
   /**
@@ -211,26 +207,151 @@ export class AddEmployee extends ReduxConnectedLitElement {
     return t(key, fallback);
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    this._parseUrlParams();
+    this._loadEmployeeData();
+  }
+
   mapStateToProps(state) {
     return {
       loading: state.employees.loading,
       error: state.employees.error,
-      totalEmployees: state.employees.employees.length,
-      itemsPerPage: state.employees.pagination.itemsPerPage || 10,
+      employees: state.employees.employees,
     };
   }
 
+  _parseUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    this.employeeId = urlParams.get('id');
+  }
+
+  _loadEmployeeData() {
+    if (!this.employeeId) {
+      this.employeeNotFound = true;
+      return;
+    }
+
+    if (this._currentState && this._currentState.employees) {
+      const employee = this._currentState.employees.find(
+        (emp) => emp.id.toString() === this.employeeId
+      );
+      if (employee) {
+        this.employeeData = {
+          ...employee,
+          // Convert DD/MM/YYYY to YYYY-MM-DD for HTML date inputs
+          dateOfEmployment: this._convertDateForInput(
+            employee.dateOfEmployment
+          ),
+          dateOfBirth: this._convertDateForInput(employee.dateOfBirth),
+        };
+        this.originalEmployeeData = {...employee};
+        this.employeeNotFound = false;
+      } else {
+        this.employeeNotFound = true;
+      }
+    }
+  }
+
+  /**
+   * Convert DD/MM/YYYY date format to YYYY-MM-DD for HTML date inputs
+   * @param {string} dateStr - Date in DD/MM/YYYY format
+   * @returns {string} Date in YYYY-MM-DD format
+   */
+  _convertDateForInput(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return '';
+
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return '';
+
+    const [day, month, year] = parts;
+    // Ensure proper padding
+    const paddedDay = day.padStart(2, '0');
+    const paddedMonth = month.padStart(2, '0');
+
+    return `${year}-${paddedMonth}-${paddedDay}`;
+  }
+
+  /**
+   * Convert YYYY-MM-DD date format to DD/MM/YYYY for storage
+   * @param {string} dateStr - Date in YYYY-MM-DD format
+   * @returns {string} Date in DD/MM/YYYY format
+   */
+  _convertDateForStorage(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return '';
+
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return '';
+
+    const [year, month, day] = parts;
+    return `${day}/${month}/${year}`;
+  }
+
+  updated(changedProperties) {
+    super.updated(changedProperties);
+
+    // Re-load employee data when state changes
+    if (changedProperties.has('_currentState') && this._currentState) {
+      this._loadEmployeeData();
+    }
+  }
+
   render() {
+    if (this.employeeNotFound) {
+      return html`
+        <!-- Navigation Header -->
+        <app-navbar
+          current-page="edit"
+          page-title="${this.t('edit_employee', 'Edit Employee')}"
+        ></app-navbar>
+
+        <!-- Content -->
+        <div class="content">
+          <h1 class="page-title">
+            ${this.t('employee_not_found', 'Employee Not Found')}
+          </h1>
+          <div class="form-container">
+            <p>
+              ${this.t(
+                'employee_not_found_message',
+                'The employee you are trying to edit could not be found.'
+              )}
+            </p>
+            <custom-button
+              variant="primary"
+              @click="${this._navigateToEmployeeList}"
+            >
+              ${this.t('back_to_list', 'Back to Employee List')}
+            </custom-button>
+          </div>
+        </div>
+      `;
+    }
+
     return html`
       <!-- Navigation Header -->
       <app-navbar
-        current-page="add"
-        page-title="${this.t('add_employee')}"
+        current-page="edit"
+        page-title="${this.t('edit_employee', 'Edit Employee')}"
       ></app-navbar>
 
       <!-- Content -->
       <div class="content">
-        <h1 class="page-title">${this.t('add_employee_title')}</h1>
+        <h1 class="page-title">
+          ${this.t('edit_employee_title', 'Edit Employee')}
+        </h1>
+
+        ${this.employeeData.firstName
+          ? html`
+              <div class="edit-info">
+                ${this.t('editing_employee_info', 'You are editing')}
+                <strong
+                  >${this.employeeData.firstName}
+                  ${this.employeeData.lastName}</strong
+                >
+              </div>
+            `
+          : ''}
 
         <div class="form-container">
           <form>
@@ -363,7 +484,7 @@ export class AddEmployee extends ReduxConnectedLitElement {
                 @click="${this._handleSubmit}"
                 style="min-width: 120px;"
               >
-                ${this.t('save_employee', 'Save Employee')}
+                ${this.t('update_employee', 'Update Employee')}
               </custom-button>
 
               <custom-button
@@ -405,49 +526,29 @@ export class AddEmployee extends ReduxConnectedLitElement {
   }
 
   _handleFirstNameChange(event) {
-    if (event.detail.value === undefined || event.detail.value === null) {
-      return;
-    }
-
     this.employeeData = {
       ...this.employeeData,
       firstName: event.detail.value,
     };
 
-    // Clear error when user types
     if (this.errors.firstName) {
-      this.errors = {
-        ...this.errors,
-        firstName: '',
-      };
+      this.errors = {...this.errors, firstName: ''};
     }
   }
 
   _handleLastNameChange(event) {
-    if (event.detail.value === undefined || event.detail.value === null) {
-      return;
-    }
-
     this.employeeData = {
       ...this.employeeData,
       lastName: event.detail.value,
     };
 
-    // Clear error when user types
     if (this.errors.lastName) {
-      this.errors = {
-        ...this.errors,
-        lastName: '',
-      };
+      this.errors = {...this.errors, lastName: ''};
     }
   }
 
   _handleEmploymentDateChange(event) {
     const value = event.detail?.value || event.target?.value;
-    if (value === undefined || value === null) {
-      return;
-    }
-
     this.employeeData = {
       ...this.employeeData,
       dateOfEmployment: value,
@@ -456,10 +557,6 @@ export class AddEmployee extends ReduxConnectedLitElement {
 
   _handleBirthDateChange(event) {
     const value = event.detail?.value || event.target?.value;
-    if (value === undefined || value === null) {
-      return;
-    }
-
     this.employeeData = {
       ...this.employeeData,
       dateOfBirth: value,
@@ -467,10 +564,6 @@ export class AddEmployee extends ReduxConnectedLitElement {
   }
 
   _handlePhoneChange(event) {
-    if (event.detail.value === undefined || event.detail.value === null) {
-      return;
-    }
-
     this.employeeData = {
       ...this.employeeData,
       phone: event.detail.value,
@@ -478,10 +571,6 @@ export class AddEmployee extends ReduxConnectedLitElement {
   }
 
   _handleEmailChange(event) {
-    if (event.detail.value === undefined || event.detail.value === null) {
-      return;
-    }
-
     this.employeeData = {
       ...this.employeeData,
       email: event.detail.value,
@@ -489,10 +578,6 @@ export class AddEmployee extends ReduxConnectedLitElement {
   }
 
   _handleDepartmentChange(event) {
-    if (event.detail.value === undefined || event.detail.value === null) {
-      return;
-    }
-
     this.employeeData = {
       ...this.employeeData,
       department: event.detail.value,
@@ -500,22 +585,17 @@ export class AddEmployee extends ReduxConnectedLitElement {
   }
 
   _handlePositionChange(event) {
-    // Handle both native select events and custom-select events
     const value = event.detail ? event.detail.value : event.target.value;
-
     this.employeeData = {
       ...this.employeeData,
       position: value,
     };
 
-    // Clear position error when user selects a value
     if (value && this.errors.position) {
-      this.errors = {
-        ...this.errors,
-        position: '',
-      };
+      this.errors = {...this.errors, position: ''};
     }
   }
+
   _validateForm() {
     const errors = {};
 
@@ -554,7 +634,6 @@ export class AddEmployee extends ReduxConnectedLitElement {
     if (!this.employeeData.phone || this.employeeData.phone.trim() === '') {
       errors.phone = this.t('required_field', 'This field is required');
     } else {
-      // Phone validation
       const phoneRegex = /^[0-9+\-\s()]+$/;
       if (!phoneRegex.test(this.employeeData.phone)) {
         errors.phone = this.t(
@@ -567,7 +646,6 @@ export class AddEmployee extends ReduxConnectedLitElement {
     if (!this.employeeData.email || this.employeeData.email.trim() === '') {
       errors.email = this.t('required_field', 'This field is required');
     } else {
-      // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(this.employeeData.email)) {
         errors.email = this.t(
@@ -603,7 +681,6 @@ export class AddEmployee extends ReduxConnectedLitElement {
         );
       }
 
-      // Age validation (must be at least 18)
       const today = new Date();
       const age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -629,7 +706,6 @@ export class AddEmployee extends ReduxConnectedLitElement {
       event.preventDefault();
     }
 
-    // Validate form
     if (!this._validateForm()) {
       return;
     }
@@ -637,29 +713,38 @@ export class AddEmployee extends ReduxConnectedLitElement {
     this.loading = true;
 
     try {
-      // Generate unique ID
-      const newEmployee = {
-        id: Date.now(),
+      // Prepare employee data with proper date format for storage
+      const employeeDataForSubmit = {
         ...this.employeeData,
+        dateOfEmployment: this._convertDateForStorage(
+          this.employeeData.dateOfEmployment
+        ),
+        dateOfBirth: this._convertDateForStorage(this.employeeData.dateOfBirth),
       };
 
-      // Dispatch Redux action to add employee
-      this.dispatchAction(addEmployee(newEmployee));
+      // Dispatch Redux action to update employee
+      this.dispatchAction(
+        updateEmployee({
+          id: this.employeeData.id,
+          updates: employeeDataForSubmit,
+        })
+      );
 
-      // Wait for next render cycle to ensure state is updated, then navigate
-      requestAnimationFrame(() => {
-        this._navigateToEmployeeListLastPage();
-      });
+      // Show success modal
+      this._showModal(
+        'success',
+        this.t('employee_updated', 'Employee updated successfully')
+      );
 
-      // Reset form
-      this._resetForm();
       this.loading = false;
     } catch (error) {
-      console.error('Employee save error:', error);
-      // Show error modal on failure
+      console.error('Employee update error:', error);
       this._showModal(
         'error',
-        this.t('employee_add_error', 'Error occurred while adding employee')
+        this.t(
+          'employee_update_error',
+          'Error occurred while updating employee'
+        )
       );
       this.loading = false;
     }
@@ -675,47 +760,11 @@ export class AddEmployee extends ReduxConnectedLitElement {
           )
         )
       ) {
-        this._resetForm();
         this._navigateToEmployeeList();
-        this.dispatchEvent(
-          new CustomEvent('employee-cancel', {
-            bubbles: true,
-            composed: true,
-          })
-        );
       }
     } else {
       this._navigateToEmployeeList();
-      this.dispatchEvent(
-        new CustomEvent('employee-cancel', {
-          bubbles: true,
-          composed: true,
-        })
-      );
     }
-  }
-
-  _navigateToEmployeeListLastPage() {
-    // Calculate the last page number based on current employees count
-    // Use state from mapStateToProps
-    if (!this._currentState) {
-      console.error('State not available');
-      // Fallback to normal navigation
-      this._navigateToEmployeeList();
-      return;
-    }
-
-    const totalEmployees = this._currentState.totalEmployees;
-    const itemsPerPage = this._currentState.itemsPerPage;
-    const totalPages = Math.ceil(totalEmployees / itemsPerPage);
-    const lastPage = Math.max(1, totalPages);
-
-    // Set the current page to the last page before navigating
-    this.dispatchAction(setCurrentPage(lastPage));
-
-    // Navigate to employee list
-    window.history.pushState({}, '', '/');
-    window.dispatchEvent(new PopStateEvent('popstate'));
   }
 
   _navigateToEmployeeList() {
@@ -724,23 +773,10 @@ export class AddEmployee extends ReduxConnectedLitElement {
   }
 
   _hasUnsavedChanges() {
-    return Object.values(this.employeeData).some(
-      (value) => value.trim() !== ''
+    return (
+      JSON.stringify(this.employeeData) !==
+      JSON.stringify(this.originalEmployeeData)
     );
-  }
-
-  _resetForm() {
-    this.employeeData = {
-      firstName: '',
-      lastName: '',
-      dateOfEmployment: '',
-      dateOfBirth: '',
-      phone: '',
-      email: '',
-      department: '',
-      position: '',
-    };
-    this.errors = {};
   }
 
   _showModal(type, message) {
@@ -776,4 +812,4 @@ export class AddEmployee extends ReduxConnectedLitElement {
   }
 }
 
-customElements.define('add-employee', AddEmployee);
+customElements.define('edit-employee', EditEmployee);

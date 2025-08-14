@@ -12,6 +12,7 @@ import {
   setSearchFilter,
   toggleSortDirection,
   setCurrentPage,
+  setItemsPerPage,
   deleteEmployee,
   setSelectedRows,
 } from './src/store/slices/employeeSlice.js';
@@ -130,6 +131,7 @@ export class EmployeeList extends ReduxConnectedLitElement {
           border-radius: var(--radius-medium);
           padding: var(--spacing-xs);
           border: 1px solid var(--border-color-light);
+          box-shadow: var(--shadow-light);
         }
 
         .view-button {
@@ -140,16 +142,24 @@ export class EmployeeList extends ReduxConnectedLitElement {
           cursor: pointer;
           color: var(--text-secondary);
           transition: all 0.2s ease;
-          font-size: var(--font-size-sm);
+          font-size: var(--font-size-md);
+          min-width: 40px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: var(--font-weight-medium);
         }
 
         .view-button.active {
           background-color: var(--color-primary);
           color: var(--text-white);
+          box-shadow: var(--shadow-small);
         }
 
         .view-button:hover:not(.active) {
           background-color: var(--bg-secondary);
+          color: var(--color-primary);
         }
 
         .page-actions {
@@ -278,8 +288,8 @@ export class EmployeeList extends ReduxConnectedLitElement {
 
   constructor() {
     super();
-    // Local UI state only
-    this.viewMode = 'list';
+    // Load view mode from localStorage or default to 'list'
+    this.viewMode = this._loadViewMode();
     this.showDeleteModal = false;
     this.employeeToDelete = null;
     this.showBulkDeleteModal = false;
@@ -287,10 +297,45 @@ export class EmployeeList extends ReduxConnectedLitElement {
   }
 
   /**
+   * Load view mode from localStorage
+   * @returns {string} The saved view mode or 'list' as default
+   */
+  _loadViewMode() {
+    try {
+      const savedViewMode = localStorage.getItem('employee-view-mode');
+      return savedViewMode && ['list', 'grid'].includes(savedViewMode)
+        ? savedViewMode
+        : 'list';
+    } catch (error) {
+      console.warn('Error loading view mode from localStorage:', error);
+      return 'list';
+    }
+  }
+
+  /**
+   * Save view mode to localStorage
+   * @param {string} mode The view mode to save
+   */
+  _saveViewMode(mode) {
+    try {
+      localStorage.setItem('employee-view-mode', mode);
+    } catch (error) {
+      console.warn('Error saving view mode to localStorage:', error);
+    }
+  }
+
+  /**
    * Helper method for getting translations
    */
   t(key, fallback) {
     return t(key, fallback);
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    // Set items per page based on the loaded view mode
+    const itemsPerPage = this.viewMode === 'grid' ? 4 : 10;
+    this.dispatchAction(setItemsPerPage(itemsPerPage));
   }
 
   updated(changedProperties) {
@@ -382,35 +427,61 @@ export class EmployeeList extends ReduxConnectedLitElement {
               <button
                 class="view-button ${this.viewMode === 'list' ? 'active' : ''}"
                 @click="${() => this._setViewMode('list')}"
+                title="${this.t('list_view', 'List View')}"
               >
-                ☰
+                📋
               </button>
               <button
                 class="view-button ${this.viewMode === 'grid' ? 'active' : ''}"
                 @click="${() => this._setViewMode('grid')}"
+                title="${this.t('card_view', 'Card View')}"
               >
-                ⊞
+                🗂️
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Data Table -->
-        <div class="table-container">
-          <data-table
-            .data="${this._currentState.paginatedEmployees}"
-            .columns="${this.columns}"
-            .loading="${this._currentState.loading}"
-            .selectedRows="${this._currentState.selectedRows}"
-            .totalItemCount="${this._currentState.filteredEmployees.length}"
-            .allFilteredEmployeeIds="${this._currentState
-              .allFilteredEmployeeIds}"
-            row-id-field="id"
-            @row-select="${this._handleRowSelect}"
-            @row-action="${this._handleTableAction}"
-            @sort-change="${this._handleSort}"
-          ></data-table>
-        </div>
+        <!-- Data Display -->
+        ${this.viewMode === 'list'
+          ? html`
+              <div class="table-container">
+                <data-table
+                  .data="${this._currentState.paginatedEmployees}"
+                  .columns="${this.columns}"
+                  .loading="${this._currentState.loading}"
+                  .selectedRows="${this._currentState.selectedRows}"
+                  .totalItemCount="${this._currentState.filteredEmployees
+                    .length}"
+                  .allFilteredEmployeeIds="${this._currentState
+                    .allFilteredEmployeeIds}"
+                  row-id-field="id"
+                  @row-select="${this._handleRowSelect}"
+                  @row-action="${this._handleTableAction}"
+                  @sort-change="${this._handleSort}"
+                ></data-table>
+              </div>
+            `
+          : html`
+              <employee-card-grid
+                .employees="${this._currentState.paginatedEmployees}"
+                .selectedRows="${this._currentState.selectedRows}"
+                .loading="${this._currentState.loading}"
+                .totalEmployees="${this._currentState.filteredEmployees.length}"
+                .currentPage="${this._currentState.pagination.currentPage}"
+                .itemsPerPage="${this._currentState.pagination.itemsPerPage}"
+                .showSelectAll="${true}"
+                .allFilteredSelected="${this._currentState.selectedRows.length >
+                  0 &&
+                this._currentState.allFilteredEmployeeIds.every((id) =>
+                  this._currentState.selectedRows.includes(id)
+                )}"
+                .t="${this.t.bind(this)}"
+                @card-action="${this._handleCardAction}"
+                @card-select="${this._handleCardSelect}"
+                @select-all="${this._handleSelectAll}"
+              ></employee-card-grid>
+            `}
 
         <!-- Pagination -->
         <custom-pagination
@@ -497,6 +568,13 @@ export class EmployeeList extends ReduxConnectedLitElement {
 
   _setViewMode(mode) {
     this.viewMode = mode;
+
+    // Save view mode to localStorage
+    this._saveViewMode(mode);
+
+    // Set items per page based on view mode
+    const itemsPerPage = mode === 'grid' ? 4 : 10;
+    this.dispatchAction(setItemsPerPage(itemsPerPage));
   }
 
   _handleSearch(event) {
@@ -507,13 +585,42 @@ export class EmployeeList extends ReduxConnectedLitElement {
     this.dispatchAction(setSelectedRows(event.detail.selectedRows));
   }
 
+  _handleCardAction(event) {
+    // Card actions use same handler as table actions
+    this._handleTableAction(event);
+  }
+
+  _handleCardSelect(event) {
+    // Card selection uses same handler as table row selection
+    this._handleRowSelect(event);
+  }
+
+  _handleSelectAll(event) {
+    if (event.detail.checked) {
+      // Select all filtered employees
+      this.dispatchAction(
+        setSelectedRows(this._currentState.allFilteredEmployeeIds)
+      );
+    } else {
+      // Deselect all
+      this.dispatchAction(setSelectedRows([]));
+    }
+  }
+
   _handleTableAction(event) {
-    const {action, row, index} = event.detail;
+    const {action, row, employee, index} = event.detail;
+
+    // Use row for table actions, employee for card actions
+    const targetEmployee = row || employee;
 
     if (action === 'delete') {
       // Show delete confirmation modal instead of alert
-      this.employeeToDelete = row;
+      this.employeeToDelete = targetEmployee;
       this.showDeleteModal = true;
+    } else if (action === 'edit') {
+      // Navigate to edit page with employee ID
+      window.history.pushState({}, '', `/edit?id=${targetEmployee.id}`);
+      window.dispatchEvent(new PopStateEvent('popstate'));
     }
 
     this.dispatchEvent(

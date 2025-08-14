@@ -10,6 +10,7 @@ import './src/store/index.js';
 // Import pages before the main app
 import './employee-list.js';
 import './add-employee.js';
+import './edit-employee.js';
 
 // Import the main app component (this will register 'ing-app')
 import './src/app.js';

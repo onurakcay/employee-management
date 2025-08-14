@@ -51,6 +51,7 @@ export class App extends LitElement {
       {path: '/', component: 'employee-list'},
       {path: '/employees', component: 'employee-list'},
       {path: '/add', component: 'add-employee'},
+      {path: '/edit', component: 'edit-employee'},
       {path: '/employees/edit/:id', component: 'add-employee'},
       {path: '(.*)', redirect: '/'},
     ]);
