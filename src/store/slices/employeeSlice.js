@@ -231,7 +231,9 @@ const employeeSlice = createSlice({
       const id = action.payload;
       state.employees = state.employees.filter((emp) => emp.id !== id);
       // Remove the deleted employee from selectedRows if it was selected
-      state.selectedRows = state.selectedRows.filter((selectedId) => selectedId !== id);
+      state.selectedRows = state.selectedRows.filter(
+        (selectedId) => selectedId !== id
+      );
       saveToStorage(state.employees);
     },
 
