@@ -50,10 +50,9 @@ export class App extends LitElement {
     router.setRoutes([
       {path: '/', component: 'employee-list'},
       {path: '/employees', component: 'employee-list'},
-      {path: '/add', component: 'add-employee'},
-      {path: '/edit', component: 'edit-employee'},
-      {path: '/employees/edit/:id', component: 'add-employee'},
-      {path: '(.*)', redirect: '/'},
+      {path: '/add', component: 'employee-form'},
+      {path: '/employees/edit/:id', component: 'employee-form'},
+      {path: '(.*)', component: 'not-found-view'},
     ]);
   }
 
