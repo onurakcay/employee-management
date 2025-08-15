@@ -158,7 +158,7 @@ export class AppNavbar extends LocalizedLitElement {
             class="nav-button"
             @button-click="${this._handleEmployeesClick}"
           >
-            <span class="nav-icon">👥</span>
+            <span class="nav-icon">👥</span>&nbsp;&nbsp;
             <span class="nav-text">${this.t('employees')}</span>
           </custom-button>
           <custom-button
@@ -166,7 +166,7 @@ export class AppNavbar extends LocalizedLitElement {
             class="nav-button"
             @button-click="${this._handleAddEmployeeClick}"
           >
-            <span class="nav-icon">+</span>
+            <span class="nav-icon">+</span>&nbsp;
             <span class="nav-text">${this.t('add_employee')}</span>
           </custom-button>
           <div

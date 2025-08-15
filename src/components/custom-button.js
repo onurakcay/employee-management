@@ -115,7 +115,6 @@ export class CustomButton extends LitElement {
 
         :host([variant='link']) button:hover:not(:disabled) {
           color: var(--color-primary-dark);
-          text-decoration: underline;
           background-color: transparent;
           box-shadow: none;
         }
