@@ -5,6 +5,7 @@
  */
 
 import {html, css} from 'lit';
+import {Router} from '@vaadin/router';
 import {LocalizedLitElement} from './src/utils/localized-lit-element.js';
 import './src/components/app-navbar.js';
 
@@ -101,8 +102,7 @@ export class NotFoundView extends LocalizedLitElement {
 
   _handleHomeClick(event) {
     event.preventDefault();
-    window.history.pushState({}, '', '/');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    Router.go('/');
   }
 }
 

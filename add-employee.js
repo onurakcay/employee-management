@@ -5,6 +5,7 @@
  */
 
 import {html, css} from 'lit';
+import {Router} from '@vaadin/router';
 import {ReduxConnectedLitElement} from './src/utils/redux-connected-lit-element.js';
 import {addEmployee, setCurrentPage} from './src/store/slices/employeeSlice.js';
 import {t} from './src/utils/localization.js';
@@ -713,14 +714,12 @@ export class AddEmployee extends ReduxConnectedLitElement {
     // Set the current page to the last page before navigating
     this.dispatchAction(setCurrentPage(lastPage));
 
-    // Navigate to employee list
-    window.history.pushState({}, '', '/');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    // Navigate to employee list using Vaadin Router
+    Router.go('/');
   }
 
   _navigateToEmployeeList() {
-    window.history.pushState({}, '', '/');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    Router.go('/');
   }
 
   _hasUnsavedChanges() {

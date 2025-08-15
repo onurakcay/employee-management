@@ -5,6 +5,7 @@
  */
 
 import {html, css} from 'lit';
+import {Router} from '@vaadin/router';
 import {ReduxConnectedLitElement} from './src/utils/redux-connected-lit-element.js';
 import {globalStyles} from './src/styles/global-styles.js';
 import {t, getPositionDisplayName} from './src/utils/localization.js';
@@ -679,9 +680,8 @@ export class EmployeeList extends ReduxConnectedLitElement {
       this.employeeToDelete = targetEmployee;
       this.showDeleteModal = true;
     } else if (action === 'edit') {
-      // Navigate to edit page with employee ID
-      window.history.pushState({}, '', `/edit?id=${targetEmployee.id}`);
-      window.dispatchEvent(new PopStateEvent('popstate'));
+      // Navigate to edit page with employee ID using Vaadin Router
+      Router.go(`/employees/edit/${targetEmployee.id}`);
     }
 
     this.dispatchEvent(
@@ -704,9 +704,8 @@ export class EmployeeList extends ReduxConnectedLitElement {
   }
 
   _handleAddNew() {
-    // Navigate to add employee page
-    window.history.pushState({}, '', '/add');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    // Navigate to add employee page using Vaadin Router
+    Router.go('/add');
   }
 
   _handleDeleteConfirm() {

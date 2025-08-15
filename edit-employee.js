@@ -5,6 +5,7 @@
  */
 
 import {html, css} from 'lit';
+import {Router} from '@vaadin/router';
 import {ReduxConnectedLitElement} from './src/utils/redux-connected-lit-element.js';
 import {updateEmployee} from './src/store/slices/employeeSlice.js';
 import {t} from './src/utils/localization.js';
@@ -768,8 +769,7 @@ export class EditEmployee extends ReduxConnectedLitElement {
   }
 
   _navigateToEmployeeList() {
-    window.history.pushState({}, '', '/');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    Router.go('/');
   }
 
   _hasUnsavedChanges() {

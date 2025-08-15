@@ -5,6 +5,7 @@
  */
 
 import {html, css} from 'lit';
+import {Router} from '@vaadin/router';
 import {LocalizedLitElement} from '../utils/localized-lit-element.js';
 import {globalStyles} from '../styles/global-styles.js';
 import './custom-button.js';
@@ -198,8 +199,7 @@ export class AppNavbar extends LocalizedLitElement {
   }
 
   _navigate(path) {
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    Router.go(path);
   }
 
   _handleLanguageToggle(event) {
