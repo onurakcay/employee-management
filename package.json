@@ -9,7 +9,7 @@
   "scripts": {
     "build": "npm run build:rollup && npm run build:copy",
     "build:rollup": "npx rollup -c",
-    "build:copy": "cp index.html dist/ && cp -r public dist/ || echo 'Copy completed'",
+    "build:copy": "cp index.html dist/ && cp -r public dist/ && sed -i '' 's/my-element\\.js/my-element.bundled.js/g' dist/index.html || echo 'Copy completed'",
     "dev": "wds --watch",
     "lint": "npm run lint:lit-analyzer && npm run lint:eslint",
     "lint:eslint": "eslint '**/*.js'",
