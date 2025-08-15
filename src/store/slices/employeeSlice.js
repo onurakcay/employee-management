@@ -230,12 +230,16 @@ const employeeSlice = createSlice({
     deleteEmployee: (state, action) => {
       const id = action.payload;
       state.employees = state.employees.filter((emp) => emp.id !== id);
+      // Remove the deleted employee from selectedRows if it was selected
+      state.selectedRows = state.selectedRows.filter((selectedId) => selectedId !== id);
       saveToStorage(state.employees);
     },
 
     deleteSelectedEmployees: (state, action) => {
       const ids = action.payload;
       state.employees = state.employees.filter((emp) => !ids.includes(emp.id));
+      // Clear all selected rows since we're deleting them
+      state.selectedRows = [];
       saveToStorage(state.employees);
     },
 
