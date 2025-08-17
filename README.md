@@ -200,41 +200,6 @@ export class MyComponent extends LitElement {
 customElements.define('my-component', MyComponent);
 ```
 
-## 🚀 Deployment
-
-### **Vercel (Recommended)**
-
-The application is optimized for Vercel deployment:
-
-1. Connect your GitHub repository to Vercel
-2. Configure build settings:
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-3. Deploy automatically on push to main branch
-
-### **Manual Deployment**
-
-```bash
-# Build for production
-npm run build
-
-# Deploy the dist/ folder to your hosting provider
-```
-
-### **Environment Configuration**
-
-No environment variables required - the application runs entirely client-side.
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
 ### **Development Guidelines**
 
 - Follow the existing code style
@@ -256,6 +221,6 @@ This project is licensed under the **BSD-3-Clause License** - see the [LICENSE](
 ## 🙏 Acknowledgments
 
 - **[Lit Team](https://lit.dev/)** for the web components library
-- **[ING Bank](https://ing.com/)** for design inspiration
+- **[ING Hubs](https://careers.ing.com/en/turkiye-hubs)** for design inspiration
 
 ---
