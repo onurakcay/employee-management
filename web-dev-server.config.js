@@ -1,35 +1,3 @@
-/**
- * @license
- * Copyright 2  ],
-  // SPA configuration - redirect all routes to index.html
-  historyApiFallback: true,
-  // Middleware to handle SPA routing
-  middleware: [
-    function servePublic(context, next) {
-      // Serve files from public directory when requested without /public prefix
-      if (
-        context.url.startsWith('/images/') ||
-        context.url.startsWith('/assets/')
-      ) {
-        context.url = '/public' + context.url;
-      }
-      return next();
-    },
-    function spaFallback(context, next) {
-      // If it's not a file request (no extension or .js/.css etc) and not API
-      if (
-        !context.url.includes('.') && 
-        !context.url.startsWith('/api/') &&
-        context.method === 'GET'
-      ) {
-        // Serve index.html for client-side routing
-        context.url = '/index.html';
-      }
-      return next();
-    },
-  ],* SPDX-License-Identifier: BSD-3-Clause
- */
-
 import {legacyPlugin} from '@web/dev-server-legacy';
 
 const mode = process.env.MODE || 'dev';
